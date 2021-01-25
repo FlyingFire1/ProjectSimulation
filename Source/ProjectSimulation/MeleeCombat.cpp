@@ -31,7 +31,7 @@ void UMeleeCombat::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor
 void UMeleeCombat::Attack()
 {
 	for(AActor* m : ovlAct)
-		m->ReceiveAnyDamage(damageAmount, dt, this->GetOwner()->GetInstigatorController(), this->GetOwner());
+		m->ReceiveAnyDamage(damageAmount, dt, GetOwner()->GetInstigatorController(), GetOwner());
 }
 
 void UMeleeCombat::SetBox(UBoxComponent* inBox)
