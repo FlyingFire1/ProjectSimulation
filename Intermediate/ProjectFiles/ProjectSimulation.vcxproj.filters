@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\ProjectSimulation.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{F68C2242-7C4A-4BCE-A832-CDD5FCC224F3}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\ProjectSimulation.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\ProjectSimulationEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\.gitattributes" />
+    <None Include="..\..\.gitignore" />
+    <Filter Include="Config">
+      <UniqueIdentifier>{9297BBB9-C18B-4189-A68C-40CDF979AED2}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEditorPerProjectUserSettings.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\ProjectSimulation">
+      <UniqueIdentifier>{44355D1A-D81A-4471-AB4A-DEA11F6764F3}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\ProjectSimulation\DamageType_Melee.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\DamageType_Melee.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\MeleeCombat.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\MeleeCombat.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <None Include="..\..\Source\ProjectSimulation\ProjectSimulation.Build.cs">
+      <Filter>Source\ProjectSimulation</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\ProjectSimulation\ProjectSimulation.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\ProjectSimulation.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\ProjectSimulationCharacter.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\ProjectSimulationCharacter.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\ProjectSimulationGameMode.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\ProjectSimulationGameMode.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\ProjectSimulationHUD.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\ProjectSimulationHUD.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\ProjectSimulationProjectile.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\ProjectSimulationProjectile.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\Sliceable.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\Sliceable.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
