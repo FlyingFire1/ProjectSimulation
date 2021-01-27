@@ -21,12 +21,12 @@ ASliceable::ASliceable()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
+	//RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	//Create Mesh
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	pm = CreateDefaultSubobject <UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
-	RootComponent->SetRelativeLocation(FVector(0,0,0));
+	/*RootComponent->SetRelativeLocation(FVector(0,0,0));*/
 	mesh->SetupAttachment(RootComponent);
 	mesh->SetVisibility(false);
 	pm->SetupAttachment(RootComponent);
@@ -34,6 +34,7 @@ ASliceable::ASliceable()
 	pm->SetSimulatePhysics(true);
 	pm->bUseComplexAsSimpleCollision = false;
 	mesh->BodyInstance.SetCollisionProfileName("NoCollision");
+	RootComponent = pm;
 }
 
 void ASliceable::OnConstruction(const FTransform& Transform)

@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
 #include "DamageType_Melee.h"
+#include "ProceduralMeshComponent.h"
 #include "MeleeCombat.generated.h"
 
 
@@ -23,6 +24,8 @@ public:
 	class UBoxComponent* box;
 	UPROPERTY(EditAnywhere, Category = Damage)
 	float damageAmount;
+	UPROPERTY(EditAnywhere, Category = Slicing)
+	class UMaterialInterface* sliceMat;
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
@@ -31,6 +34,8 @@ public:
 	void Attack();
 	UFUNCTION(BlueprintCallable)
 	void SetBox(UBoxComponent* inBox);
+	UFUNCTION(BlueprintCallable)
+	void FadeObject(UPrimitiveComponent* comp);
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -40,5 +45,6 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 private:
 	TArray<AActor*> ovlAct; //TArray of all overlapping actors;
+	TArray<UProceduralMeshComponent*> ovlPM;
 	UDamageType* dt;	//Damage Type, later defined as melee;
 };

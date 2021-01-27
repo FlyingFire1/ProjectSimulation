@@ -2,7 +2,10 @@
 
 
 #include "MeleeCombat.h"
-
+#include "Sliceable.h"
+#include "Engine.h"
+#include "GameFramework/Actor.h" 
+#include "KismetProceduralMeshLibrary.h"
 
 // Sets default values for this component's properties
 UMeleeCombat::UMeleeCombat()
@@ -21,19 +24,66 @@ UMeleeCombat::UMeleeCombat()
 void UMeleeCombat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ovlAct.Add(OtherActor);
+	if (OverlappedComponent->IsA(UProceduralMeshComponent::StaticClass()))
+		ovlPM.Add(Cast<UProceduralMeshComponent>(OverlappedComponent));
+	if (OtherComp->IsA(UProceduralMeshComponent::StaticClass()))
+		ovlPM.Add(Cast<UProceduralMeshComponent>(OtherComp));
+
 }
 
 void UMeleeCombat::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	ovlAct.Remove(OtherActor);
+	if (OverlappedComponent->IsA(UProceduralMeshComponent::StaticClass()))
+		ovlPM.Remove(Cast<UProceduralMeshComponent>(OverlappedComponent));
+	if (OtherComp->IsA(UProceduralMeshComponent::StaticClass()))
+		ovlPM.Remove(Cast<UProceduralMeshComponent>(OtherComp));
 }
 
 void UMeleeCombat::Attack()
 {
 
 	//For each actor, call receive damage.
-	for(AActor* m : ovlAct)
+	for (AActor* m : ovlAct)
+	{
 		m->ReceiveAnyDamage(damageAmount, dt, GetOwner()->GetInstigatorController(), GetOwner());
+	}
+
+	//For each proc mesh, split in half.
+	for (UProceduralMeshComponent* m : ovlPM)
+	{
+		FVector raycastLoc = box->GetComponentLocation();
+		raycastLoc.Y += (box->GetScaledBoxExtent().Y / 2);
+		raycastLoc += box->GetComponentLocation() - box->GetRelativeLocation();
+
+		FHitResult* hr = new FHitResult();
+		if (GetWorld()->LineTraceSingleByChannel(*hr, GetOwner()->GetActorLocation(), m->GetComponentLocation(), ECC_Visibility))
+		{
+			//Line For Debugging
+			//DrawDebugLine(GetWorld(), GetOwner()->GetActorLocation(), m->GetComponentLocation(), FColor(255, 0, 0), false, 2.f);
+			UProceduralMeshComponent* procMesh;
+			UKismetProceduralMeshLibrary::SliceProceduralMesh(m, hr->ImpactPoint, FVector(2, 4, 3), true, procMesh, EProcMeshSliceCapOption::CreateNewSectionForCap, sliceMat);
+			//Make new proc mesh have physics
+			procMesh->SetSimulatePhysics(true);
+			procMesh->AddImpulse(FVector(50, 50, 50), NAME_None, true);
+
+			//Timers for destroying
+			FTimerHandle uHandle;
+			FTimerDelegate dlg;
+			dlg.BindUFunction(this, FName("FadeObject"), procMesh);
+			GetWorld()->GetTimerManager().SetTimer(uHandle, dlg, 2.f, false);
+			FTimerHandle uHandle2;
+			FTimerDelegate dlg2;
+			dlg2.BindUFunction(this, FName("FadeObject"), m);
+			GetWorld()->GetTimerManager().SetTimer(uHandle2, dlg2, 2.f, false);
+			//bogged but you could make a function inside melee combat that deletes the proc mesh.
+		}
+	}
+}
+
+void UMeleeCombat::FadeObject(UPrimitiveComponent* comp)
+{
+	comp->DestroyComponent();
 }
 
 void UMeleeCombat::SetBox(UBoxComponent* inBox)
