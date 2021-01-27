@@ -45,6 +45,14 @@ class AProjectSimulationCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UMotionControllerComponent* L_MotionController;
 
+	/*Box for melee attacking*/
+	UPROPERTY(Category = Character, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* MeleeBox;
+
+	/*Component that controls melee attacking*/
+	UPROPERTY(Category = Character, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UMeleeCombat* MeleeCombat;
+
 public:
 	AProjectSimulationCharacter();
 
@@ -79,6 +87,8 @@ public:
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
+
+
 
 protected:
 	

@@ -17,7 +17,9 @@ class PROJECTSIMULATION_API UMeleeCombat : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UMeleeCombat();
-	UPROPERTY(EditAnywhere, Category = Registration)
+	//Constructor for custom melee box
+	UMeleeCombat(UBoxComponent* boxComp);
+	UPROPERTY(Category = Registration, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* box;
 	UPROPERTY(EditAnywhere, Category = Damage)
 	float damageAmount;
