@@ -53,6 +53,10 @@ class AProjectSimulationCharacter : public ACharacter
 	UPROPERTY(Category = Character, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UMeleeCombat* MeleeCombat;
 
+	UPROPERTY(Category = Character, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UAdvancedMovementComponent* AdvancedMovement;
+
+
 public:
 	AProjectSimulationCharacter();
 
@@ -94,6 +98,12 @@ protected:
 	
 	/** Fires a projectile. */
 	void OnFire();
+
+	void OnJump();
+
+	void OnJumpRelease();
+
+	virtual void Landed(const FHitResult& Hit) override;
 
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();

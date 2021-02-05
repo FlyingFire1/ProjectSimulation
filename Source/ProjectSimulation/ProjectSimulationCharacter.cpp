@@ -12,6 +12,7 @@
 #include "MotionControllerComponent.h"
 #include "MeleeCombat.h"
 #include "Components/BoxComponent.h"
+#include "AdvancedMovementComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -91,6 +92,8 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	MeleeCombat->damageAmount = 20.f;
 	MeleeCombat->SetBox(MeleeBox);
 
+	AdvancedMovement = CreateDefaultSubobject<UAdvancedMovementComponent>(TEXT("AdvancedMovement"));
+
 }
 
 void AProjectSimulationCharacter::BeginPlay()
@@ -123,8 +126,8 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 	check(PlayerInputComponent);
 
 	// Bind jump events
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AProjectSimulationCharacter::OnJump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AProjectSimulationCharacter::OnJumpRelease);
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AProjectSimulationCharacter::OnFire);
@@ -146,6 +149,13 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AProjectSimulationCharacter::LookUpAtRate);
 }
+
+void AProjectSimulationCharacter::Landed(const FHitResult& Hit)
+{
+	AdvancedMovement->JumpReset();
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
+}
+
 
 void AProjectSimulationCharacter::OnFire()
 {
@@ -196,6 +206,16 @@ void AProjectSimulationCharacter::OnFire()
 
 	//Attack using melee component;
 	MeleeCombat->Attack();
+}
+
+void AProjectSimulationCharacter::OnJump()
+{
+	AdvancedMovement->Jump();
+}
+
+void AProjectSimulationCharacter::OnJumpRelease()
+{
+	StopJumping();
 }
 
 void AProjectSimulationCharacter::OnResetVR()
