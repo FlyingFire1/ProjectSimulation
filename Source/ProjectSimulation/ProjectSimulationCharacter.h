@@ -116,6 +116,9 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
+	void Crouch();
+	void StopCrouch();
+
 	struct TouchData
 	{
 		TouchData() { bIsPressed = false;Location=FVector::ZeroVector;}

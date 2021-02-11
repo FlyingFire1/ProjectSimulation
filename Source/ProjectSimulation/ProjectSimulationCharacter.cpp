@@ -126,6 +126,10 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	// Bind crouch events
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AProjectSimulationCharacter::Crouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AProjectSimulationCharacter::StopCrouch);
+
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AProjectSimulationCharacter::OnFire);
 
@@ -294,6 +298,16 @@ void AProjectSimulationCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AProjectSimulationCharacter::Crouch()
+{
+
+}
+
+void AProjectSimulationCharacter::StopCrouch()
+{
+
 }
 
 bool AProjectSimulationCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)

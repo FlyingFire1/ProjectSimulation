@@ -17,12 +17,20 @@ void EmptyLinkFunctionForGeneratedCodeMeleeCombat() {}
 	PROJECTSIMULATION_API UClass* Z_Construct_UClass_UMeleeCombat();
 	ENGINE_API UClass* Z_Construct_UClass_UActorComponent();
 	UPackage* Z_Construct_UPackage__Script_ProjectSimulation();
-	ENGINE_API UScriptStruct* Z_Construct_UScriptStruct_FHitResult();
 	ENGINE_API UClass* Z_Construct_UClass_UPrimitiveComponent_NoRegister();
+	ENGINE_API UScriptStruct* Z_Construct_UScriptStruct_FHitResult();
 	ENGINE_API UClass* Z_Construct_UClass_AActor_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UBoxComponent_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UMaterialInterface_NoRegister();
 // End Cross Module References
+	DEFINE_FUNCTION(UMeleeCombat::execFadeObject)
+	{
+		P_GET_OBJECT(UPrimitiveComponent,Z_Param_comp);
+		P_FINISH;
+		P_NATIVE_BEGIN;
+		P_THIS->FadeObject(Z_Param_comp);
+		P_NATIVE_END;
+	}
 	DEFINE_FUNCTION(UMeleeCombat::execSetBox)
 	{
 		P_GET_OBJECT(UBoxComponent,Z_Param_inBox);
@@ -67,6 +75,7 @@ void EmptyLinkFunctionForGeneratedCodeMeleeCombat() {}
 		UClass* Class = UMeleeCombat::StaticClass();
 		static const FNameNativePtrPair Funcs[] = {
 			{ "Attack", &UMeleeCombat::execAttack },
+			{ "FadeObject", &UMeleeCombat::execFadeObject },
 			{ "OnOverlapBegin", &UMeleeCombat::execOnOverlapBegin },
 			{ "OnOverlapEnd", &UMeleeCombat::execOnOverlapEnd },
 			{ "SetBox", &UMeleeCombat::execSetBox },
@@ -92,6 +101,46 @@ void EmptyLinkFunctionForGeneratedCodeMeleeCombat() {}
 		if (!ReturnFunction)
 		{
 			UE4CodeGen_Private::ConstructUFunction(ReturnFunction, Z_Construct_UFunction_UMeleeCombat_Attack_Statics::FuncParams);
+		}
+		return ReturnFunction;
+	}
+	struct Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics
+	{
+		struct MeleeCombat_eventFadeObject_Parms
+		{
+			UPrimitiveComponent* comp;
+		};
+#if WITH_METADATA
+		static const UE4CodeGen_Private::FMetaDataPairParam NewProp_comp_MetaData[];
+#endif
+		static const UE4CodeGen_Private::FObjectPropertyParams NewProp_comp;
+		static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[];
+#if WITH_METADATA
+		static const UE4CodeGen_Private::FMetaDataPairParam Function_MetaDataParams[];
+#endif
+		static const UE4CodeGen_Private::FFunctionParams FuncParams;
+	};
+#if WITH_METADATA
+	const UE4CodeGen_Private::FMetaDataPairParam Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::NewProp_comp_MetaData[] = {
+		{ "EditInline", "true" },
+	};
+#endif
+	const UE4CodeGen_Private::FObjectPropertyParams Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::NewProp_comp = { "comp", nullptr, (EPropertyFlags)0x0010000000080080, UE4CodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, STRUCT_OFFSET(MeleeCombat_eventFadeObject_Parms, comp), Z_Construct_UClass_UPrimitiveComponent_NoRegister, METADATA_PARAMS(Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::NewProp_comp_MetaData, UE_ARRAY_COUNT(Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::NewProp_comp_MetaData)) };
+	const UE4CodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::PropPointers[] = {
+		(const UE4CodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::NewProp_comp,
+	};
+#if WITH_METADATA
+	const UE4CodeGen_Private::FMetaDataPairParam Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::Function_MetaDataParams[] = {
+		{ "ModuleRelativePath", "MeleeCombat.h" },
+	};
+#endif
+	const UE4CodeGen_Private::FFunctionParams Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::FuncParams = { (UObject*(*)())Z_Construct_UClass_UMeleeCombat, nullptr, "FadeObject", nullptr, nullptr, sizeof(MeleeCombat_eventFadeObject_Parms), Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::PropPointers, UE_ARRAY_COUNT(Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::PropPointers), RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x04020401, 0, 0, METADATA_PARAMS(Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::Function_MetaDataParams, UE_ARRAY_COUNT(Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::Function_MetaDataParams)) };
+	UFunction* Z_Construct_UFunction_UMeleeCombat_FadeObject()
+	{
+		static UFunction* ReturnFunction = nullptr;
+		if (!ReturnFunction)
+		{
+			UE4CodeGen_Private::ConstructUFunction(ReturnFunction, Z_Construct_UFunction_UMeleeCombat_FadeObject_Statics::FuncParams);
 		}
 		return ReturnFunction;
 	}
@@ -309,6 +358,7 @@ void EmptyLinkFunctionForGeneratedCodeMeleeCombat() {}
 	};
 	const FClassFunctionLinkInfo Z_Construct_UClass_UMeleeCombat_Statics::FuncInfo[] = {
 		{ &Z_Construct_UFunction_UMeleeCombat_Attack, "Attack" }, // 3454455734
+		{ &Z_Construct_UFunction_UMeleeCombat_FadeObject, "FadeObject" }, // 1833612866
 		{ &Z_Construct_UFunction_UMeleeCombat_OnOverlapBegin, "OnOverlapBegin" }, // 799555515
 		{ &Z_Construct_UFunction_UMeleeCombat_OnOverlapEnd, "OnOverlapEnd" }, // 3135170148
 		{ &Z_Construct_UFunction_UMeleeCombat_SetBox, "SetBox" }, // 2118119262
@@ -376,7 +426,7 @@ void EmptyLinkFunctionForGeneratedCodeMeleeCombat() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UMeleeCombat, 85312491);
+	IMPLEMENT_CLASS(UMeleeCombat, 1844462147);
 	template<> PROJECTSIMULATION_API UClass* StaticClass<UMeleeCombat>()
 	{
 		return UMeleeCombat::StaticClass();

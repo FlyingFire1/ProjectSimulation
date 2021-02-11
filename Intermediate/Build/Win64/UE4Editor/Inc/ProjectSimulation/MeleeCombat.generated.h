@@ -8,8 +8,8 @@
 #include "UObject/ScriptMacros.h"
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
-class UBoxComponent;
 class UPrimitiveComponent;
+class UBoxComponent;
 class AActor;
 struct FHitResult;
 #ifdef PROJECTSIMULATION_MeleeCombat_generated_h
@@ -20,6 +20,7 @@ struct FHitResult;
 #define ProjectSimulation_Source_ProjectSimulation_MeleeCombat_h_16_SPARSE_DATA
 #define ProjectSimulation_Source_ProjectSimulation_MeleeCombat_h_16_RPC_WRAPPERS \
  \
+	DECLARE_FUNCTION(execFadeObject); \
 	DECLARE_FUNCTION(execSetBox); \
 	DECLARE_FUNCTION(execAttack); \
 	DECLARE_FUNCTION(execOnOverlapEnd); \
@@ -28,6 +29,7 @@ struct FHitResult;
 
 #define ProjectSimulation_Source_ProjectSimulation_MeleeCombat_h_16_RPC_WRAPPERS_NO_PURE_DECLS \
  \
+	DECLARE_FUNCTION(execFadeObject); \
 	DECLARE_FUNCTION(execSetBox); \
 	DECLARE_FUNCTION(execAttack); \
 	DECLARE_FUNCTION(execOnOverlapEnd); \
