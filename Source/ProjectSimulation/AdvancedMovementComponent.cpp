@@ -46,7 +46,7 @@ void UAdvancedMovementComponent::DoJump()
 	{
 		//Rotation of camera set to a fixed upwards angle
 		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetComponentRotation();
-		rot.Yaw = 60.f;
+		rot.Pitch = 60.f;
 
 		//Get forward vector of rotation
 		FVector temp = FRotationMatrix(rot).GetScaledAxis(EAxis::X);
