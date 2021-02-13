@@ -6,6 +6,7 @@
 #include "ProjectSimulationCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
+#include "Engine.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UAdvancedMovementComponent::UAdvancedMovementComponent() 
@@ -15,6 +16,7 @@ UAdvancedMovementComponent::UAdvancedMovementComponent()
 	
 }
 
+// Double Jump ***********************************************************************************
 void UAdvancedMovementComponent::Jump()
 {
 	pDoCounter++;
@@ -38,15 +40,56 @@ void UAdvancedMovementComponent::JumpReset()
 }
 
 
-//Set box for wall run logic
-void UAdvancedMovementComponent::SetWallRunBox(UBoxComponent* inBox)
+void UAdvancedMovementComponent::DoJump()
 {
-	//Destroy current box and replace it
-	UBoxComponent& boxComp = *WallRunBoxComponent;
-	boxComp.DestroyComponent();
-	WallRunBoxComponent = inBox;
+	if (pOnWall)
+	{
+		//Rotation of camera set to a fixed upwards angle
+		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetComponentRotation();
+		rot.Yaw = 60.f;
+
+		//Get forward vector of rotation
+		FVector temp = FRotationMatrix(rot).GetScaledAxis(EAxis::X);
+		temp *= (pWallRunSpeed / 150.f);
+
+		Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, false, true);
+	}
+	else
+		Cast<ACharacter>(GetOwner())->LaunchCharacter(FVector(0, 0, 420), false, true);
 }
 
+//Grapple ***********************************************************************************
+void UAdvancedMovementComponent::OnGrapple()
+{
+	if (pCanGrapple)
+	{
+		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
+		pCanGrapple = false; //Disable Grapple
+
+		//Check For Hit
+		FVector forVector = player->GetFirstPersonCameraComponent()->GetForwardVector() * GrappleDistance;
+		FHitResult* hr = new FHitResult();
+		if (GetWorld()->LineTraceSingleByChannel(*hr, player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, ECC_Visibility))
+		{
+			DrawDebugLine(GetWorld(), player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, FColor(255, 0, 0), false, 2.f);
+
+			//If object has the tag "CanGrapple" then grapple object
+			if (hr->GetActor()->ActorHasTag(TEXT("CanGrapple")) || hr->GetComponent()->ComponentHasTag(TEXT("CanGrapple")))
+			{
+				pHookLocation = hr->Location;
+				FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
+				player->LaunchCharacter(hookMovement, true, true);
+			}
+		}
+	}
+}
+
+void UAdvancedMovementComponent::OnGrappleRelease()
+{
+	pCanGrapple = true;
+}
+
+//Wall Running ***********************************************************************************
 //Called upon the wall run box overlaps an object
 void UAdvancedMovementComponent::OnWallRunBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -112,6 +155,16 @@ void UAdvancedMovementComponent::TickTimeline()
 	}
 }
 
+//Set box for wall run logic
+void UAdvancedMovementComponent::SetWallRunBox(UBoxComponent* inBox)
+{
+	//Destroy current box and replace it
+	UBoxComponent& boxComp = *WallRunBoxComponent;
+	boxComp.DestroyComponent();
+	WallRunBoxComponent = inBox;
+}
+
+// Base Functions ***********************************************************************************
 void UAdvancedMovementComponent::BeginPlay()
 {
 	//Binding WallRunBox functions
@@ -130,21 +183,4 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 		TickTimeline();
 }
 
-void UAdvancedMovementComponent::DoJump()
-{
-	if (pOnWall)
-	{
-		//Rotation of camera set to a fixed upwards angle
-		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetComponentRotation();
-		rot.Yaw = 60.f;
-
-		//Get forward vector of rotation
-		FVector temp = FRotationMatrix(rot).GetScaledAxis(EAxis::X);
-		temp *= (pWallRunSpeed / 150.f); 
-
-		Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, false, true);
-	}
-	else
-		Cast<ACharacter>(GetOwner())->LaunchCharacter(FVector(0, 0, 420), false, true);
-}
-
+//***********************************************************************************

@@ -136,11 +136,10 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AProjectSimulationCharacter::OnFire);
-
-	// Enable touchscreen input
-	EnableTouchscreenMovement(PlayerInputComponent);
-
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AProjectSimulationCharacter::OnResetVR);
+	
+	// Bind Grapple event
+	PlayerInputComponent->BindAction("Grapple", IE_Pressed, this, &AProjectSimulationCharacter::OnGrapple);
+	PlayerInputComponent->BindAction("Grapple", IE_Released, this, &AProjectSimulationCharacter::OnGrappleRelease);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AProjectSimulationCharacter::MoveForward);
@@ -159,6 +158,16 @@ void AProjectSimulationCharacter::Landed(const FHitResult& Hit)
 {
 	AdvancedMovement->JumpReset();
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
+}
+
+void AProjectSimulationCharacter::OnGrapple()
+{
+	AdvancedMovement->OnGrapple();
+}
+
+void AProjectSimulationCharacter::OnGrappleRelease()
+{
+	AdvancedMovement->OnGrappleRelease();
 }
 
 
@@ -221,36 +230,6 @@ void AProjectSimulationCharacter::OnJump()
 void AProjectSimulationCharacter::OnJumpRelease()
 {
 	StopJumping();
-}
-
-void AProjectSimulationCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AProjectSimulationCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == true)
-	{
-		return;
-	}
-	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
-	{
-		OnFire();
-	}
-	TouchItem.bIsPressed = true;
-	TouchItem.FingerIndex = FingerIndex;
-	TouchItem.Location = Location;
-	TouchItem.bMoved = false;
-}
-
-void AProjectSimulationCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == false)
-	{
-		return;
-	}
-	TouchItem.bIsPressed = false;
 }
 
 //Commenting this section out to be consistent with FPS BP template.
@@ -321,20 +300,6 @@ void AProjectSimulationCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-bool AProjectSimulationCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
-{
-	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
-	{
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AProjectSimulationCharacter::BeginTouch);
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AProjectSimulationCharacter::EndTouch);
-
-		//Commenting this out to be more consistent with FPS BP template.
-		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AProjectSimulationCharacter::TouchUpdate);
-		return true;
-	}
-	
-	return false;
-}
 
 
 
