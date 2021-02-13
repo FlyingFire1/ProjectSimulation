@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/MovementComponent.h"
+#include "Components/TimelineComponent.h"
 #include "AdvancedMovementComponent.generated.h"
 
 /**
@@ -16,12 +17,36 @@ class PROJECTSIMULATION_API UAdvancedMovementComponent : public UActorComponent
 public:
 	UAdvancedMovementComponent();
 	UPROPERTY(EditAnywhere, Category = WallRun)
+	float WallRunSpeed = 2000.f;
+	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxComponent;
+	float dt;
 	UFUNCTION()
 	void Jump();
 	UFUNCTION()
 	void JumpReset();
+	UFUNCTION(BlueprintCallable)
+	void SetWallRunBox(class UBoxComponent* inBox);
+	
+protected:
+	UFUNCTION()
+	void OnWallRunBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnWallRunBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UFUNCTION()
+	void TickTimeline();
+	UFUNCTION()
+	virtual void BeginPlay();
+public:
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 private:
-	int doCounter = 0;
+	int tickUp = 0;
+	bool isPlaying = false;
+	int pDoCounter = 0;
 	void DoJump();
+	FVector pPlayerDirection;
+	bool pOnWall;
+	float pWallRunSpeed;
+	TArray<uint32_t> pRunWallStrA;
+	TArray<UPrimitiveComponent> pRunWallStrC;
 };

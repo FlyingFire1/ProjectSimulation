@@ -46,23 +46,24 @@ class AProjectSimulationCharacter : public ACharacter
 	class UMotionControllerComponent* L_MotionController;
 
 	/*Box for melee attacking*/
-	UPROPERTY(Category = Character, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* MeleeBox;
 
 	/*Component that controls melee attacking*/
-	UPROPERTY(Category = Character, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = Melee, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UMeleeCombat* MeleeCombat;
 
-	UPROPERTY(Category = Character, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	/*Box for melee attacking*/
+	UPROPERTY(Category = AdvMovement, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* WallRunBox;
+
+	UPROPERTY(Category = AdvMovement, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UAdvancedMovementComponent* AdvancedMovement;
-
-
 public:
 	AProjectSimulationCharacter();
 
 protected:
 	virtual void BeginPlay();
-
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)

@@ -94,6 +94,11 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 
 	AdvancedMovement = CreateDefaultSubobject<UAdvancedMovementComponent>(TEXT("AdvancedMovement"));
 
+	WallRunBox = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBox"));
+	WallRunBox->SetupAttachment(GetCapsuleComponent());
+	WallRunBox->SetGenerateOverlapEvents(true);
+	WallRunBox->SetCollisionProfileName("OverlapAll");
+	AdvancedMovement->SetWallRunBox(WallRunBox);
 }
 
 void AProjectSimulationCharacter::BeginPlay()
@@ -330,3 +335,6 @@ bool AProjectSimulationCharacter::EnableTouchscreenMovement(class UInputComponen
 	
 	return false;
 }
+
+
+
