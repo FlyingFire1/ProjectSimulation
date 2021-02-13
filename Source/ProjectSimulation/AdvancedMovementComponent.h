@@ -21,10 +21,16 @@ public:
 	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxComponent;
 	float dt;
+
+	//Jump, with double jump logic
 	UFUNCTION()
 	void Jump();
+
+	//Reset the jump counter
 	UFUNCTION()
 	void JumpReset();
+
+	//Set box for wall run logic
 	UFUNCTION(BlueprintCallable)
 	void SetWallRunBox(class UBoxComponent* inBox);
 	
@@ -40,13 +46,11 @@ protected:
 public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 private:
-	int tickUp = 0;
 	bool isPlaying = false;
 	int pDoCounter = 0;
 	void DoJump();
 	FVector pPlayerDirection;
 	bool pOnWall;
 	float pWallRunSpeed;
-	TArray<uint32_t> pRunWallStrA;
-	TArray<UPrimitiveComponent> pRunWallStrC;
+	TArray<uint32_t> pRunWallStr;
 };
