@@ -33,7 +33,9 @@ public:
 	/*********************** Wall Run ***********************/
 	//Set box for wall run logic
 	UFUNCTION(BlueprintCallable)
-	void SetWallRunBox(class UBoxComponent* inBox);
+	void SetWallRunBoxL(class UBoxComponent* inBox);
+	UFUNCTION(BlueprintCallable)
+	void SetWallRunBoxR(class UBoxComponent* inBox);
 
 	//The base wall run speed
 	UPROPERTY(EditAnywhere, Category = WallRun)
@@ -60,6 +62,8 @@ protected:
 	UFUNCTION()
 	void OnWallRunBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	UFUNCTION()
+	void OnWallRunBoxHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	UFUNCTION()
 	void TickTimeline();
 private:
 
@@ -74,7 +78,9 @@ private:
 	float pWallRunSpeed;
 	TArray<uint32_t> pRunWallStr;
 	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* WallRunBoxComponent;
+	class UBoxComponent* WallRunBoxLComponent;
+	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* WallRunBoxRComponent;
 
 	/***********************Grapple Hook***********************/
 	bool pCanGrapple = true;
