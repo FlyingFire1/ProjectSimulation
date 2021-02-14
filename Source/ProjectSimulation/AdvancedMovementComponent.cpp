@@ -70,11 +70,13 @@ void UAdvancedMovementComponent::OnGrapple()
 		pCanGrapple = false; //Disable Grapple
 
 		//Check For Hit
-		FVector forVector = player->GetFirstPersonCameraComponent()->GetForwardVector() * GrappleDistance;
+		FVector forVector = player->GetFirstPersonCameraComponent()->GetComponentLocation() + (player->Controller->GetControlRotation().Vector() * GrappleDistance);
 		FHitResult* hr = new FHitResult();
+
+
 		if (GetWorld()->LineTraceSingleByChannel(*hr, player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, ECC_Visibility))
 		{
-			DrawDebugLine(GetWorld(), player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, FColor(255, 0, 0), false, 2.f);
+			
 
 			//If object has the tag "CanGrapple" then grapple object
 			if (hr->GetActor()->ActorHasTag(TEXT("CanGrapple")) || hr->GetComponent()->ComponentHasTag(TEXT("CanGrapple")))
