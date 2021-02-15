@@ -94,11 +94,38 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 
 	AdvancedMovement = CreateDefaultSubobject<UAdvancedMovementComponent>(TEXT("AdvancedMovement"));
 
-	WallRunBox = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBox"));
-	WallRunBox->SetupAttachment(GetCapsuleComponent());
-	WallRunBox->SetGenerateOverlapEvents(true);
-	WallRunBox->SetCollisionProfileName("OverlapAll");
-	AdvancedMovement->SetWallRunBox(WallRunBox);
+	WallRunBoxL = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBoxL"));
+	WallRunBoxL->SetupAttachment(GetCapsuleComponent());
+	WallRunBoxL->SetGenerateOverlapEvents(true);
+	WallRunBoxL->SetCollisionProfileName("OverlapAll");
+	AdvancedMovement->SetWallRunBoxL(WallRunBoxL);
+
+	WallRunBoxR = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBoxR"));
+	WallRunBoxR->SetupAttachment(GetCapsuleComponent());
+	WallRunBoxR->SetGenerateOverlapEvents(true);
+	WallRunBoxR->SetCollisionProfileName("OverlapAll");
+	AdvancedMovement->SetWallRunBoxR(WallRunBoxR);
+
+
+	const ConstructorHelpers::FObjectFinder<UCurveFloat> Curve(TEXT("CurveFloat'/Game/FirstPersonCPP/Blueprints/LinCurve.LinCurve'"));
+	if (Curve.Object) {
+		fCurve = Curve.Object;
+	}
+
+	ScoreTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineScore"));
+	InterpFunction.BindUFunction(this, FName{ TEXT("TimelineFloatReturn") });
+}
+
+void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
+{
+
+	pOGCamera = GetFirstPersonCameraComponent()->GetComponentRotation();
+
+	pCamera = rotation;
+	pUseRoll = useRoll;
+	pUsePitch = usePitch;
+	pUseYaw = useYaw;
+	ScoreTimeline->PlayFromStart();
 }
 
 void AProjectSimulationCharacter::BeginPlay()
@@ -120,7 +147,23 @@ void AProjectSimulationCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+
+	ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
 }
+
+
+void AProjectSimulationCharacter::TimelineFloatReturn(float val)
+{
+	float roll = pUseRoll ? FMath::Lerp(pOGCamera.Roll, pCamera.Roll, val) : Controller->GetControlRotation().Roll;
+	float yaw = pUseYaw ? Controller->GetControlRotation().Yaw : Controller->GetControlRotation().Yaw;
+	float pitch = pUsePitch ? FMath::Lerp(pOGCamera.Pitch, pCamera.Pitch, val) : Controller->GetControlRotation().Pitch;
+	FRotator temp;
+	temp.Roll = roll;
+	temp.Yaw = yaw;
+	temp.Pitch = pitch;
+	Controller->ClientSetRotation(temp);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -136,11 +179,10 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AProjectSimulationCharacter::OnFire);
-
-	// Enable touchscreen input
-	EnableTouchscreenMovement(PlayerInputComponent);
-
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AProjectSimulationCharacter::OnResetVR);
+	
+	// Bind Grapple event
+	PlayerInputComponent->BindAction("Grapple", IE_Pressed, this, &AProjectSimulationCharacter::OnGrapple);
+	PlayerInputComponent->BindAction("Grapple", IE_Released, this, &AProjectSimulationCharacter::OnGrappleRelease);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AProjectSimulationCharacter::MoveForward);
@@ -158,57 +200,21 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 void AProjectSimulationCharacter::Landed(const FHitResult& Hit)
 {
 	AdvancedMovement->JumpReset();
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
+}
+
+void AProjectSimulationCharacter::OnGrapple()
+{
+	AdvancedMovement->OnGrapple();
+}
+
+void AProjectSimulationCharacter::OnGrappleRelease()
+{
+	AdvancedMovement->OnGrappleRelease();
 }
 
 
 void AProjectSimulationCharacter::OnFire()
 {
-	//// try and fire a projectile
-	//if (ProjectileClass != NULL)
-	//{
-	//	UWorld* const World = GetWorld();
-	//	if (World != NULL)
-	//	{
-	//		if (bUsingMotionControllers)
-	//		{
-	//			const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-	//			const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-	//			World->SpawnActor<AProjectSimulationProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-	//		}
-	//		else
-	//		{
-	//			const FRotator SpawnRotation = GetControlRotation();
-	//			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-	//			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-	//			//Set Spawn Collision Handling Override
-	//			FActorSpawnParameters ActorSpawnParams;
-	//			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-	//			// spawn the projectile at the muzzle
-	//			World->SpawnActor<AProjectSimulationProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-	//		}
-	//	}
-	//}
-
-	//// try and play the sound if specified
-	//if (FireSound != NULL)
-	//{
-	//	UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	//}
-
-	//// try and play a firing animation if specified
-	//if (FireAnimation != NULL)
-	//{
-	//	// Get the animation object for the arms mesh
-	//	UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-	//	if (AnimInstance != NULL)
-	//	{
-	//		AnimInstance->Montage_Play(FireAnimation, 1.f);
-	//	}
-	//}
-
 	//Attack using melee component;
 	MeleeCombat->Attack();
 }
@@ -222,74 +228,6 @@ void AProjectSimulationCharacter::OnJumpRelease()
 {
 	StopJumping();
 }
-
-void AProjectSimulationCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AProjectSimulationCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == true)
-	{
-		return;
-	}
-	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
-	{
-		OnFire();
-	}
-	TouchItem.bIsPressed = true;
-	TouchItem.FingerIndex = FingerIndex;
-	TouchItem.Location = Location;
-	TouchItem.bMoved = false;
-}
-
-void AProjectSimulationCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == false)
-	{
-		return;
-	}
-	TouchItem.bIsPressed = false;
-}
-
-//Commenting this section out to be consistent with FPS BP template.
-//This allows the user to turn without using the right virtual joystick
-
-//void AProjectSimulationCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
-//{
-//	if ((TouchItem.bIsPressed == true) && (TouchItem.FingerIndex == FingerIndex))
-//	{
-//		if (TouchItem.bIsPressed)
-//		{
-//			if (GetWorld() != nullptr)
-//			{
-//				UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
-//				if (ViewportClient != nullptr)
-//				{
-//					FVector MoveDelta = Location - TouchItem.Location;
-//					FVector2D ScreenSize;
-//					ViewportClient->GetViewportSize(ScreenSize);
-//					FVector2D ScaledDelta = FVector2D(MoveDelta.X, MoveDelta.Y) / ScreenSize;
-//					if (FMath::Abs(ScaledDelta.X) >= 4.0 / ScreenSize.X)
-//					{
-//						TouchItem.bMoved = true;
-//						float Value = ScaledDelta.X * BaseTurnRate;
-//						AddControllerYawInput(Value);
-//					}
-//					if (FMath::Abs(ScaledDelta.Y) >= 4.0 / ScreenSize.Y)
-//					{
-//						TouchItem.bMoved = true;
-//						float Value = ScaledDelta.Y * BaseTurnRate;
-//						AddControllerPitchInput(Value);
-//					}
-//					TouchItem.Location = Location;
-//				}
-//				TouchItem.Location = Location;
-//			}
-//		}
-//	}
-//}
 
 void AProjectSimulationCharacter::MoveForward(float Value)
 {
@@ -321,20 +259,6 @@ void AProjectSimulationCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-bool AProjectSimulationCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
-{
-	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
-	{
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AProjectSimulationCharacter::BeginTouch);
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AProjectSimulationCharacter::EndTouch);
-
-		//Commenting this out to be more consistent with FPS BP template.
-		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AProjectSimulationCharacter::TouchUpdate);
-		return true;
-	}
-	
-	return false;
-}
 
 
 

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/TimelineComponent.h"
 #include "ProjectSimulationCharacter.generated.h"
 
 class UInputComponent;
@@ -34,7 +35,7 @@ class AProjectSimulationCharacter : public ACharacter
 	class USceneComponent* VR_MuzzleLocation;
 
 	/** First person camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
 
 	/** Motion controller (right hand) */
@@ -55,12 +56,18 @@ class AProjectSimulationCharacter : public ACharacter
 
 	/*Box for melee attacking*/
 	UPROPERTY(Category = AdvMovement, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* WallRunBox;
+	class UBoxComponent* WallRunBoxL;
+
+	/*Box for melee attacking*/
+	UPROPERTY(Category = AdvMovement, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* WallRunBoxR;
 
 	UPROPERTY(Category = AdvMovement, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UAdvancedMovementComponent* AdvancedMovement;
 public:
 	AProjectSimulationCharacter();
+
+	void RotateCamera(FRotator rotation, bool useRoll = true, bool usePitch = true, bool useYaw = true);
 
 protected:
 	virtual void BeginPlay();
@@ -100,14 +107,21 @@ protected:
 	/** Fires a projectile. */
 	void OnFire();
 
+	// Called on Jumping
 	void OnJump();
 
+	// Called on release of Jumping
 	void OnJumpRelease();
 
+	// Called upon hitting the ground, virtual function
 	virtual void Landed(const FHitResult& Hit) override;
 
-	/** Resets HMD orientation and position in VR. */
-	void OnResetVR();
+	//Called On grapple
+	void OnGrapple();
+
+	//Called on Grapple release
+	void OnGrappleRelease();
+
 
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
@@ -127,37 +141,37 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-	struct TouchData
-	{
-		TouchData() { bIsPressed = false;Location=FVector::ZeroVector;}
-		bool bIsPressed;
-		ETouchIndex::Type FingerIndex;
-		FVector Location;
-		bool bMoved;
-	};
-	void BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
-	void EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
-	void TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location);
-	TouchData	TouchItem;
-	
+
+
+	UPROPERTY()
+	UTimelineComponent* ScoreTimeline;
+
+	UPROPERTY()
+	UCurveFloat* fCurve;
+
+	FOnTimelineFloat InterpFunction{};
+
+	float lerp = 0.f;
+
+	UFUNCTION()
+	void TimelineFloatReturn(float val);
+
+private:
+	FRotator pOGCamera;
+	FRotator pCamera;
+	bool pUseRoll;
+	bool pUsePitch;
+	bool pUseYaw;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
 
-	/* 
-	 * Configures input for touchscreen devices if there is a valid touch interface for doing so 
-	 *
-	 * @param	InputComponent	The input component pointer to bind controls to
-	 * @returns true if touch controls were enabled.
-	 */
-	bool EnableTouchscreenMovement(UInputComponent* InputComponent);
-
 public:
 	/** Returns Mesh1P subobject **/
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() { return FirstPersonCameraComponent; }
 
 };
 

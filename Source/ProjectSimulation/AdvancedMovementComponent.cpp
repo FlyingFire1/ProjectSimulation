@@ -6,15 +6,17 @@
 #include "ProjectSimulationCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
+#include "Engine.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UAdvancedMovementComponent::UAdvancedMovementComponent() 
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	WallRunBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBox"));
+	/*WallRunBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBox"));*/
 	
 }
 
+// Double Jump ***********************************************************************************
 void UAdvancedMovementComponent::Jump()
 {
 	pDoCounter++;
@@ -25,6 +27,7 @@ void UAdvancedMovementComponent::Jump()
 		DoJump();
 		break;
 	case(2):
+		Cast<AProjectSimulationCharacter>(GetOwner())->RotateCamera(FRotator(5.f, 0.f, 0.f), false, true, false);
 		DoJump();
 		break;
 	default:
@@ -34,18 +37,65 @@ void UAdvancedMovementComponent::Jump()
 
 void UAdvancedMovementComponent::JumpReset()
 {
+	Cast<AProjectSimulationCharacter>(GetOwner())->RotateCamera(FRotator(-2.5f, 0.f, 0.f), false, true, false);
 	pDoCounter = 0;
 }
 
 
-//Set box for wall run logic
-void UAdvancedMovementComponent::SetWallRunBox(UBoxComponent* inBox)
+void UAdvancedMovementComponent::DoJump()
 {
-	//Destroy current box and replace it
-	UBoxComponent& boxComp = *WallRunBoxComponent;
-	boxComp.DestroyComponent();
-	WallRunBoxComponent = inBox;
+	if (pOnWall)
+	{
+		//Rotation of camera set to a fixed upwards angle
+		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->Controller->GetControlRotation();
+		rot.Pitch = 60.f;
+		rot.Roll = 0.f;
+
+		//Get forward vector of rotation
+		FVector temp = rot.Vector();
+		temp *= 1000;
+		temp.Z = 700.f;
+
+		Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, false, true);
+	}
+	else
+		Cast<ACharacter>(GetOwner())->LaunchCharacter(FVector(0, 0, 420), false, true);
 }
+
+//Grapple ***********************************************************************************
+void UAdvancedMovementComponent::OnGrapple()
+{
+	if (pCanGrapple)
+	{
+		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
+		pCanGrapple = false; //Disable Grapple
+
+		//Check For Hit
+		FVector forVector = player->GetFirstPersonCameraComponent()->GetComponentLocation() + (player->Controller->GetControlRotation().Vector() * GrappleDistance);
+		FHitResult* hr = new FHitResult();
+
+
+		if (GetWorld()->LineTraceSingleByChannel(*hr, player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, ECC_Visibility))
+		{
+			
+
+			//If object has the tag "CanGrapple" then grapple object
+			if (hr->GetActor()->ActorHasTag(TEXT("CanGrapple")) || hr->GetComponent()->ComponentHasTag(TEXT("CanGrapple")))
+			{
+				pHookLocation = hr->Location;
+				FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
+				player->LaunchCharacter(hookMovement, true, true);
+			}
+		}
+	}
+}
+
+void UAdvancedMovementComponent::OnGrappleRelease()
+{
+	pCanGrapple = true;
+}
+
+//Wall Running ***********************************************************************************
 
 //Called upon the wall run box overlaps an object
 void UAdvancedMovementComponent::OnWallRunBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -60,6 +110,24 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlap(UPrimitiveComponent* Overla
 		pOnWall = true;
 		pWallRunSpeed = WallRunSpeed;
 		isPlaying = true;
+
+
+
+		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
+		FRotator newRot = player->GetFirstPersonCameraComponent()->GetComponentRotation();
+
+
+
+		//Check if we are running on the left or right, then apply camera roll
+		if (OverlappedComponent->GetUniqueID() == WallRunBoxLComponent->GetUniqueID())
+			newRot.Roll = 15.f;
+
+		else
+			newRot.Roll = -15.f;
+
+
+		//Use Camera rotate Function
+		player->RotateCamera(newRot, true, false, false);
 	}
 	else if (OtherComp->ComponentHasTag(TEXT("RunWall")) && Cast<AProjectSimulationCharacter>(GetOwner())->GetCharacterMovement()->IsFalling())
 	{
@@ -71,17 +139,41 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlap(UPrimitiveComponent* Overla
 		pOnWall = true;
 		pWallRunSpeed = WallRunSpeed;
 		isPlaying = true;
+
+
+
+		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
+		FRotator newRot = player->GetFirstPersonCameraComponent()->GetComponentRotation();
+
+
+
+		//Check if we are running on the left or right, then apply camera roll
+		if (OverlappedComponent->GetUniqueID() == WallRunBoxLComponent->GetUniqueID())
+			newRot.Roll = 15.f;
+
+		else
+			newRot.Roll = -15.f;
+
+
+		//Use Camera rotate Function
+		player->RotateCamera(newRot, true, false, false);
 	}
 }
+
 
 //Called upon the wall run box ends overlap with an object
 void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	//here from testing, should be removed when u have time(u will probs forget)
 	if (OtherActor->ActorHasTag(TEXT("RunWall")))
+	{
 		pRunWallStr.Remove(OtherActor->GetUniqueID());
+
+	}
 	else if (OtherComp->ComponentHasTag(TEXT("RunWall")))
+	{
 		pRunWallStr.Remove(OtherComp->GetUniqueID());
+	}
 
 	//If array(wall run objects) is empty, do this
 	if (pRunWallStr.Num() == 0)
@@ -92,6 +184,23 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* Ove
 		cm->GravityScale = 1.f;
 		cm->SetPlaneConstraintNormal(FVector(0, 0, 0));
 		pOnWall = false;
+
+		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
+
+		//rotating camera back to original position
+		FRotator newRot = player->GetFirstPersonCameraComponent()->GetComponentRotation();
+		newRot.Roll = 0;
+		player->RotateCamera(newRot, true, false, false);
+	}
+
+	
+}
+
+void UAdvancedMovementComponent::OnWallRunBoxHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherComp->ComponentHasTag(TEXT("RunWall")))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, Hit.Location.ToText().ToString());
 	}
 }
 
@@ -112,11 +221,28 @@ void UAdvancedMovementComponent::TickTimeline()
 	}
 }
 
+//Set box for wall run logic
+void UAdvancedMovementComponent::SetWallRunBoxL(UBoxComponent* inBox)
+{
+	//Destroy current box and replace it
+	WallRunBoxLComponent = inBox;
+}
+
+void UAdvancedMovementComponent::SetWallRunBoxR(UBoxComponent* inBox)
+{
+	//Destroy current box and replace it
+	WallRunBoxRComponent = inBox;
+}
+
+// Base Functions ***********************************************************************************
 void UAdvancedMovementComponent::BeginPlay()
 {
 	//Binding WallRunBox functions
-	WallRunBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlap);
-	WallRunBoxComponent->OnComponentEndOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlapEnd);
+	WallRunBoxLComponent->OnComponentBeginOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlap);
+	WallRunBoxLComponent->OnComponentEndOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlapEnd);
+	
+	WallRunBoxRComponent->OnComponentBeginOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlap);
+	WallRunBoxRComponent->OnComponentEndOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlapEnd);
 
 	//Setting Plane Constraints
 	UCharacterMovementComponent* cm = Cast<AProjectSimulationCharacter>(GetOwner())->GetCharacterMovement();
@@ -130,21 +256,4 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 		TickTimeline();
 }
 
-void UAdvancedMovementComponent::DoJump()
-{
-	if (pOnWall)
-	{
-		//Rotation of camera set to a fixed upwards angle
-		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetComponentRotation();
-		rot.Yaw = 60.f;
-
-		//Get forward vector of rotation
-		FVector temp = FRotationMatrix(rot).GetScaledAxis(EAxis::X);
-		temp *= (pWallRunSpeed / 150.f); 
-
-		Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, false, true);
-	}
-	else
-		Cast<ACharacter>(GetOwner())->LaunchCharacter(FVector(0, 0, 420), false, true);
-}
-
+//***********************************************************************************
