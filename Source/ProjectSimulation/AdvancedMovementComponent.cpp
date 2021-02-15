@@ -47,13 +47,14 @@ void UAdvancedMovementComponent::DoJump()
 	if (pOnWall)
 	{
 		//Rotation of camera set to a fixed upwards angle
-		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetComponentRotation();
+		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->Controller->GetControlRotation();
 		rot.Pitch = 60.f;
 		rot.Roll = 0.f;
 
 		//Get forward vector of rotation
-		FVector temp = FRotationMatrix(rot).GetScaledAxis(EAxis::X);
-		temp *= (pWallRunSpeed / 150.f);
+		FVector temp = rot.Vector();
+		temp *= 1000;
+		temp.Z = 700.f;
 
 		Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, false, true);
 	}
