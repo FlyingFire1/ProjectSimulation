@@ -28,7 +28,7 @@ void UAdvancedMovementComponent::Jump()
 		break;
 	case(2):
 		Cast<AProjectSimulationCharacter>(GetOwner())->RotateCamera(FRotator(5.f, 0.f, 0.f), false, true, false);
-		DoJump();
+		DoLunge(true);
 		break;
 	default:
 		break;
@@ -45,21 +45,23 @@ void UAdvancedMovementComponent::JumpReset()
 void UAdvancedMovementComponent::DoJump()
 {
 	if (pOnWall)
-	{
-		//Rotation of camera set to a fixed upwards angle
-		FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->Controller->GetControlRotation();
-		rot.Pitch = 60.f;
-		rot.Roll = 0.f;
-
-		//Get forward vector of rotation
-		FVector temp = rot.Vector();
-		temp *= 1000;
-		temp.Z = 700.f;
-
-		Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, false, true);
-	}
+		DoLunge(false);
 	else
 		Cast<ACharacter>(GetOwner())->LaunchCharacter(FVector(0, 0, 420), false, true);
+}
+void UAdvancedMovementComponent::DoLunge(bool resetMomementom)
+{
+	//Rotation of camera set to a fixed upwards angle
+	FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->Controller->GetControlRotation();
+	rot.Pitch = 60.f;
+	rot.Roll = 0.f;
+
+	//Get forward vector of rotation
+	FVector temp = rot.Vector();
+	temp *= 1000;
+	temp.Z = 700.f;
+
+	Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, resetMomementom, true);
 }
 
 //Grapple ***********************************************************************************
@@ -68,7 +70,6 @@ void UAdvancedMovementComponent::OnGrapple()
 	if (pCanGrapple)
 	{
 		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
-		pCanGrapple = false; //Disable Grapple
 
 		//Check For Hit
 		FVector forVector = player->GetFirstPersonCameraComponent()->GetComponentLocation() + (player->Controller->GetControlRotation().Vector() * GrappleDistance);
@@ -77,14 +78,17 @@ void UAdvancedMovementComponent::OnGrapple()
 
 		if (GetWorld()->LineTraceSingleByChannel(*hr, player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, ECC_Visibility))
 		{
-			
-
-			//If object has the tag "CanGrapple" then grapple object
-			if (hr->GetActor()->ActorHasTag(TEXT("CanGrapple")) || hr->GetComponent()->ComponentHasTag(TEXT("CanGrapple")))
+			//Verifying Actor(Stops Crash)
+			if (hr->GetActor()->IsValidLowLevel())
 			{
-				pHookLocation = hr->Location;
-				FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
-				player->LaunchCharacter(hookMovement, true, true);
+				//If object has the tag "CanGrapple" then grapple object
+				if (hr->GetActor()->ActorHasTag(TEXT("CanGrapple")) || hr->GetComponent()->ComponentHasTag(TEXT("CanGrapple")))
+				{
+					pHookLocation = hr->Location;
+					FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
+					player->LaunchCharacter(hookMovement, true, true);
+					pCanGrapple = false; //Disable Grapple
+				}
 			}
 		}
 	}
@@ -92,8 +96,27 @@ void UAdvancedMovementComponent::OnGrapple()
 
 void UAdvancedMovementComponent::OnGrappleRelease()
 {
+	if (pGrappleOverloadCheck)
+	{
+		FTimerDelegate TimerDel;
+		FTimerHandle TimerHandle;
+
+		TimerDel.BindUFunction(this, FName("GrappleReset"));
+
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, GrappleDelay, false);
+		TimerHandle.Invalidate();
+		pGrappleOverloadCheck = false;
+	}
+}
+
+
+void UAdvancedMovementComponent::GrappleReset()
+{
+	pGrappleOverloadCheck = true;
 	pCanGrapple = true;
 }
+
+
 
 //Wall Running ***********************************************************************************
 

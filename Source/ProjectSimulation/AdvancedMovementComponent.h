@@ -50,6 +50,8 @@ public:
 	float GrappleSpeed = 2.5f;
 	UPROPERTY(EditAnywhere, Category = Grapple)
 	float GrappleDistance = 3000.f;
+	UPROPERTY(EditAnywhere, Category = Grapple)
+	float GrappleDelay = 1.f;
 
 protected:
 	/***********************Base Functions ***********************/
@@ -65,11 +67,17 @@ protected:
 	void OnWallRunBoxHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 	UFUNCTION()
 	void TickTimeline();
+	/***********************Grapple Hook***********************/
+	UFUNCTION()
+	void GrappleReset();
 private:
 
 	/***********************Double Jump***********************/
 	int pDoCounter = 0;
+	/*Jump up in air*/
 	void DoJump();
+	/*Jump and lunge based on camera direction*/
+	void DoLunge(bool resetMomementom);
 
 	/***********************Wallrunning***********************/
 	bool isPlaying = false;
@@ -84,5 +92,6 @@ private:
 
 	/***********************Grapple Hook***********************/
 	bool pCanGrapple = true;
+	bool pGrappleOverloadCheck = true;
 	FVector pHookLocation;
 }; 
