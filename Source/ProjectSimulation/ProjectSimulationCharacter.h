@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Components/TimelineComponent.h"
+#include "HUDWidget.h"
 #include "ProjectSimulationCharacter.generated.h"
 
 class UInputComponent;
@@ -100,7 +101,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
 
-
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> WidgetHUDClass;
 
 protected:
 	
@@ -157,11 +159,16 @@ protected:
 	void TimelineFloatReturn(float val);
 
 private:
+
+	//Camera
 	FRotator pOGCamera;
 	FRotator pCamera;
 	bool pUseRoll;
 	bool pUsePitch;
 	bool pUseYaw;
+
+	//UI
+	UHUDWidget* HUDWidget;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;

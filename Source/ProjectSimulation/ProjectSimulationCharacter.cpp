@@ -148,7 +148,18 @@ void AProjectSimulationCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 
-	ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
+
+	if (WidgetHUDClass)
+	{
+		HUDWidget = CreateWidget<UHUDWidget>(GetWorld(), WidgetHUDClass);
+		/** Make sure widget was created */
+		if (HUDWidget)
+		{
+			/** Add it to the viewport */
+			HUDWidget->AddToViewport();
+		}
+	}
+		ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
 }
 
 
