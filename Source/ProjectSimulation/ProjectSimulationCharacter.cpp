@@ -13,6 +13,8 @@
 #include "MeleeCombat.h"
 #include "Components/BoxComponent.h"
 #include "AdvancedMovementComponent.h"
+#include "Math/UnrealMathUtility.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -116,18 +118,6 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	InterpFunction.BindUFunction(this, FName{ TEXT("TimelineFloatReturn") });
 }
 
-void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
-{
-
-	pOGCamera = GetFirstPersonCameraComponent()->GetComponentRotation();
-
-	pCamera = rotation;
-	pUseRoll = useRoll;
-	pUsePitch = usePitch;
-	pUseYaw = useYaw;
-	ScoreTimeline->PlayFromStart();
-}
-
 void AProjectSimulationCharacter::BeginPlay()
 {
 	// Call the base class  
@@ -163,6 +153,7 @@ void AProjectSimulationCharacter::TimelineFloatReturn(float val)
 	temp.Pitch = pitch;
 	Controller->ClientSetRotation(temp);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -235,8 +226,16 @@ void AProjectSimulationCharacter::MoveForward(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
+		
+		//Footstep sound logic
+		if (!isPlayingFootstep)
+		{
+			PlayFootstep();
+		}
 	}
 }
+
+
 
 void AProjectSimulationCharacter::MoveRight(float Value)
 {
@@ -244,6 +243,11 @@ void AProjectSimulationCharacter::MoveRight(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
+
+		if (!isPlayingFootstep)
+		{
+			PlayFootstep();
+		}
 	}
 }
 
@@ -261,4 +265,56 @@ void AProjectSimulationCharacter::LookUpAtRate(float Rate)
 
 
 
+//////////////////////////////////////////////////////////////////////////
+// Manipulation Functions
 
+/*Useful function for timers*/
+void AProjectSimulationCharacter::BoolWait(bool& inBool)
+{
+	isPlayingFootstep = false;
+}
+
+/*Plays a footstep sound*/
+void AProjectSimulationCharacter::PlayFootstep()
+{
+	UCharacterMovementComponent* cm = GetCharacterMovement();
+	if (!cm->IsFalling())
+	{
+		footstepCount++;
+		if (footstepCount > FootStepSounds.Num())
+			footstepCount = 0;
+
+
+		int32 id = footstepCount;
+
+		if (FootStepSounds.IsValidIndex(id))
+		{
+			USoundBase* chosenSound = FootStepSounds[id];
+			if (chosenSound != NULL)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+				isPlayingFootstep = true;
+				FTimerDelegate TimerDel;
+				FTimerHandle TimerHandle;
+
+				TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenSound->Duration), false);
+				TimerHandle.Invalidate();
+			}
+		}
+	}
+}
+
+/*Allows rotation of camera*/
+void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
+{
+
+	pOGCamera = GetFirstPersonCameraComponent()->GetComponentRotation();
+
+	pCamera = rotation;
+	pUseRoll = useRoll;
+	pUsePitch = usePitch;
+	pUseYaw = useYaw;
+	ScoreTimeline->PlayFromStart();
+}

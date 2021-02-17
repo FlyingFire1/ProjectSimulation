@@ -90,7 +90,7 @@ public:
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	class USoundBase* FireSound;
+	TArray<class USoundBase*> FootStepSounds;
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -157,6 +157,16 @@ protected:
 	void TimelineFloatReturn(float val);
 
 private:
+
+	UFUNCTION()
+	void BoolWait(bool& inBool);
+
+	UFUNCTION()
+	void PlayFootstep();
+
+	bool isPlayingFootstep = false;
+	int32 footstepCount = 0;
+
 	FRotator pOGCamera;
 	FRotator pCamera;
 	bool pUseRoll;
@@ -166,6 +176,7 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
+
 
 public:
 	/** Returns Mesh1P subobject **/
