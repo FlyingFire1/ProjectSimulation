@@ -104,6 +104,7 @@ void UMeleeCombat::BeginPlay()
 {
 	Super::BeginPlay();
 	box->OnComponentBeginOverlap.AddDynamic(this, &UMeleeCombat::OnOverlapBegin);        // set up a notification for when this component overlaps something
+	box->OnComponentEndOverlap.AddDynamic(this, &UMeleeCombat::OnOverlapEnd);        // set up a notification for when this component overlaps something
 }
 
 // Called every frame
