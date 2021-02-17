@@ -24,10 +24,12 @@ void UAdvancedMovementComponent::Jump()
 	switch (pDoCounter)
 	{
 	case(1):
+		Cast<AProjectSimulationCharacter>(GetOwner())->PlayJumpVoiceline();
 		DoJump();
 		break;
 	case(2):
 		Cast<AProjectSimulationCharacter>(GetOwner())->RotateCamera(FRotator(5.f, 0.f, 0.f), false, true, false);
+		Cast<AProjectSimulationCharacter>(GetOwner())->PlayVaultVoiceline();
 		DoLunge(true);
 		break;
 	default:
