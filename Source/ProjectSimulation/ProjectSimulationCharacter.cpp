@@ -305,7 +305,7 @@ void AProjectSimulationCharacter::PlayFootstep()
 /*Plays a random taunt sound*/
 void AProjectSimulationCharacter::PlayTauntVoiceline()
 {
-	int32 id = FMath::RandRange(0, TauntSounds.Num());
+	int32 id = FMath::RandRange(0, (TauntSounds.Num()-1));
 	if (TauntSounds.IsValidIndex(id))
 	{
 		USoundBase* chosenSound = TauntSounds[id];
@@ -316,10 +316,30 @@ void AProjectSimulationCharacter::PlayTauntVoiceline()
 /*Plays a random pain sound*/
 void AProjectSimulationCharacter::PlayPainVoiceline()
 {
-	int32 id = FMath::RandRange(0, PainSounds.Num());
+	int32 id = FMath::RandRange(0, (PainSounds.Num()-1));
 	if (PainSounds.IsValidIndex(id))
 	{
 		USoundBase* chosenSound = PainSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+void AProjectSimulationCharacter::PlayVaultVoiceline()
+{
+	int32 id = FMath::RandRange(0, (JumpSounds.Num()-1));
+	if (JumpSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = JumpSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+void AProjectSimulationCharacter::PlayJumpVoiceline()
+{
+	int32 id = FMath::RandRange(0, (VaultSounds.Num()-1));
+	if (VaultSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = VaultSounds[id];
 		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
 	}
 }

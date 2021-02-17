@@ -13,6 +13,8 @@ UCLASS(config=Game)
 class AProjectSimulationCharacter : public ACharacter
 {
 	GENERATED_BODY()
+	
+	friend class UAdvancedMovementComponent;  //Used for voicelines(dont want everything public
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
@@ -76,6 +78,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
 
+public:
 	//Sounds 
 
 	/** Sounds that are used for footsteps */
@@ -88,7 +91,15 @@ public:
 
 	/** Sounds that are used for pain */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
-	TArray<class USoundBase*> PainSounds;
+	TArray<class USoundBase*> PainSounds;	
+	
+	/** Sounds that are used for Jumping */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> JumpSounds;	
+	
+	/** Sounds that are used for Vaulting */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> VaultSounds;
 
 
 protected:
@@ -146,7 +157,7 @@ protected:
 	void TimelineFloatReturn(float val);
 
 private:
-
+	/*******Sound*******/
 	UFUNCTION()
 	void BoolWait(bool& inBool);
 
@@ -157,10 +168,18 @@ private:
 	void PlayTauntVoiceline();
 
 	UFUNCTION()
-	void PlayPainVoiceline();
+	void PlayPainVoiceline();	
+
+	UFUNCTION()
+	void PlayVaultVoiceline();	
+
+	UFUNCTION()
+	void PlayJumpVoiceline();
+
 
 	bool isPlayingFootstep = false;
 	int32 footstepCount = 0;
+	/*******************/
 
 	FRotator pOGCamera;
 	FRotator pCamera;

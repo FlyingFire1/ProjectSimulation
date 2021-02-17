@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/MovementComponent.h"
+#include "ProjectSimulationCharacter.h"
 #include "Components/TimelineComponent.h"
 #include "AdvancedMovementComponent.generated.h"
 
@@ -19,7 +20,6 @@ class PROJECTSIMULATION_API UAdvancedMovementComponent : public UActorComponent
 	GENERATED_BODY()
 public:
 	UAdvancedMovementComponent();
-
 	/*********************** Double Jump ***********************/
 	//Jump, with double jump logic
 	UFUNCTION()
