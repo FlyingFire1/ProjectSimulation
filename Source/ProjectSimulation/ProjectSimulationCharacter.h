@@ -51,6 +51,7 @@ class AProjectSimulationCharacter : public ACharacter
 public:
 	AProjectSimulationCharacter();
 
+	UFUNCTION()
 	void RotateCamera(FRotator rotation, bool useRoll = true, bool usePitch = true, bool useYaw = true);
 
 protected:
@@ -75,6 +76,16 @@ public:
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
+
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timeline")
+	UTimelineComponent* ScoreTimeline;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timeline")
+	UCurveFloat* fCurve;
+
+	FOnTimelineFloat InterpFunction{};
 
 	//Sounds 
 
@@ -130,22 +141,12 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-
-
-	UPROPERTY()
-	UTimelineComponent* ScoreTimeline;
-
-	UPROPERTY()
-	UCurveFloat* fCurve;
-
-	FOnTimelineFloat InterpFunction{};
-
 	float lerp = 0.f;
+
+private:
 
 	UFUNCTION()
 	void TimelineFloatReturn(float val);
-
-private:
 
 	UFUNCTION()
 	void BoolWait(bool& inBool);

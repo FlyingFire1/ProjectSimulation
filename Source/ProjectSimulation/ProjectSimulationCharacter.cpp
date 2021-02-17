@@ -122,14 +122,18 @@ void AProjectSimulationCharacter::BeginPlay()
 
 void AProjectSimulationCharacter::TimelineFloatReturn(float val)
 {
-	float roll = pUseRoll ? FMath::Lerp(pOGCamera.Roll, pCamera.Roll, val) : Controller->GetControlRotation().Roll;
-	float yaw = pUseYaw ? Controller->GetControlRotation().Yaw : Controller->GetControlRotation().Yaw;
-	float pitch = pUsePitch ? FMath::Lerp(pOGCamera.Pitch, pCamera.Pitch, val) : Controller->GetControlRotation().Pitch;
-	FRotator temp;
-	temp.Roll = roll;
-	temp.Yaw = yaw;
-	temp.Pitch = pitch;
-	Controller->ClientSetRotation(temp);
+
+	if (!this->IsPendingKillPending() )
+	{
+		float roll = pUseRoll ? FMath::Lerp(pOGCamera.Roll, pCamera.Roll, val) : Controller->GetControlRotation().Roll;
+		float yaw = pUseYaw ? Controller->GetControlRotation().Yaw : Controller->GetControlRotation().Yaw;
+		float pitch = pUsePitch ? FMath::Lerp(pOGCamera.Pitch, pCamera.Pitch, val) : Controller->GetControlRotation().Pitch;
+		FRotator temp;
+		temp.Roll = roll;
+		temp.Yaw = yaw;
+		temp.Pitch = pitch;
+		Controller->ClientSetRotation(temp);
+	}
 }
 
 
