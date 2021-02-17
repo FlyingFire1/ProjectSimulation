@@ -88,9 +88,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
 	TSubclassOf<class AProjectSimulationProjectile> ProjectileClass;
 
-	/** Sound to play each time we fire */
+	/** Sounds that are used for footsteps */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	TArray<class USoundBase*> FootStepSounds;
+	TArray<class USoundBase*> FootStepSounds;	
+	
+	/** Sounds that are used for taunts */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	TArray<class USoundBase*> TauntSounds;
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -163,6 +167,9 @@ private:
 
 	UFUNCTION()
 	void PlayFootstep();
+
+	UFUNCTION()
+	void PlayTauntVoiceline();
 
 	bool isPlayingFootstep = false;
 	int32 footstepCount = 0;

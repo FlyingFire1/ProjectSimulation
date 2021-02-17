@@ -138,6 +138,15 @@ void AProjectSimulationCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 
+	isPlayingFootstep = true;
+	FTimerDelegate TimerDel;
+	FTimerHandle TimerHandle;
+
+	TimerDel.BindUFunction(this, FName("PlayTauntVoiceline"));
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 4.f, true);
+
+
 	ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
 }
 
@@ -274,6 +283,24 @@ void AProjectSimulationCharacter::BoolWait(bool& inBool)
 	isPlayingFootstep = false;
 }
 
+
+/*Allows rotation of camera*/
+void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
+{
+
+	pOGCamera = GetFirstPersonCameraComponent()->GetComponentRotation();
+
+	pCamera = rotation;
+	pUseRoll = useRoll;
+	pUsePitch = usePitch;
+	pUseYaw = useYaw;
+	ScoreTimeline->PlayFromStart();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Sound Functions
+
 /*Plays a footstep sound*/
 void AProjectSimulationCharacter::PlayFootstep()
 {
@@ -306,15 +333,13 @@ void AProjectSimulationCharacter::PlayFootstep()
 	}
 }
 
-/*Allows rotation of camera*/
-void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
+void AProjectSimulationCharacter::PlayTauntVoiceline()
 {
-
-	pOGCamera = GetFirstPersonCameraComponent()->GetComponentRotation();
-
-	pCamera = rotation;
-	pUseRoll = useRoll;
-	pUsePitch = usePitch;
-	pUseYaw = useYaw;
-	ScoreTimeline->PlayFromStart();
+	int32 id = FMath::RandRange(0, TauntSounds.Num());
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
+	if (TauntSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = TauntSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
 }
