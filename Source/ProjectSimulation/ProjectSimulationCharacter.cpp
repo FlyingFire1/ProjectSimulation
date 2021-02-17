@@ -138,13 +138,13 @@ void AProjectSimulationCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 
-	isPlayingFootstep = true;
-	FTimerDelegate TimerDel;
-	FTimerHandle TimerHandle;
+	////Code for timer
+	//FTimerDelegate TimerDel;
+	//FTimerHandle TimerHandle;
 
-	TimerDel.BindUFunction(this, FName("PlayTauntVoiceline"));
+	//TimerDel.BindUFunction(this, FName("PlayPainVoiceline"));
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 4.f, true);
+	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 4.f, true);
 
 
 	ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
@@ -333,13 +333,24 @@ void AProjectSimulationCharacter::PlayFootstep()
 	}
 }
 
+/*Plays a random taunt sound*/
 void AProjectSimulationCharacter::PlayTauntVoiceline()
 {
 	int32 id = FMath::RandRange(0, TauntSounds.Num());
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
 	if (TauntSounds.IsValidIndex(id))
 	{
 		USoundBase* chosenSound = TauntSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+/*Plays a random pain sound*/
+void AProjectSimulationCharacter::PlayPainVoiceline()
+{
+	int32 id = FMath::RandRange(0, PainSounds.Num());
+	if (PainSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = PainSounds[id];
 		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
 	}
 }
