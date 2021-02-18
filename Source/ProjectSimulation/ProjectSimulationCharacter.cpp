@@ -13,6 +13,8 @@
 #include "MeleeCombat.h"
 #include "Components/BoxComponent.h"
 #include "AdvancedMovementComponent.h"
+#include "Math/UnrealMathUtility.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -62,27 +64,6 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
 
-	// Create VR Controllers.
-	R_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("R_MotionController"));
-	R_MotionController->MotionSource = FXRMotionControllerBase::RightHandSourceId;
-	R_MotionController->SetupAttachment(RootComponent);
-	L_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("L_MotionController"));
-	L_MotionController->SetupAttachment(RootComponent);
-
-	// Create a gun and attach it to the right-hand VR controller.
-	// Create a gun mesh component
-	VR_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VR_Gun"));
-	VR_Gun->SetOnlyOwnerSee(true);			// only the owning player will see this mesh
-	VR_Gun->bCastDynamicShadow = false;
-	VR_Gun->CastShadow = false;
-	VR_Gun->SetupAttachment(R_MotionController);
-	VR_Gun->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-
-	VR_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("VR_MuzzleLocation"));
-	VR_MuzzleLocation->SetupAttachment(VR_Gun);
-	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));
-	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));		// Counteract the rotation of the VR gun model.
-
 	// Create Melee Box
 	MeleeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("MeleeBox"));
 	MeleeBox->SetupAttachment(FirstPersonCameraComponent);
@@ -116,18 +97,6 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	InterpFunction.BindUFunction(this, FName{ TEXT("TimelineFloatReturn") });
 }
 
-void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
-{
-
-	pOGCamera = GetFirstPersonCameraComponent()->GetComponentRotation();
-
-	pCamera = rotation;
-	pUseRoll = useRoll;
-	pUsePitch = usePitch;
-	pUseYaw = useYaw;
-	ScoreTimeline->PlayFromStart();
-}
-
 void AProjectSimulationCharacter::BeginPlay()
 {
 	// Call the base class  
@@ -137,16 +106,15 @@ void AProjectSimulationCharacter::BeginPlay()
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
-	if (bUsingMotionControllers)
-	{
-		VR_Gun->SetHiddenInGame(false, true);
-		Mesh1P->SetHiddenInGame(true, true);
-	}
-	else
-	{
-		VR_Gun->SetHiddenInGame(true, true);
-		Mesh1P->SetHiddenInGame(false, true);
-	}
+
+	////Code for timer
+	//FTimerDelegate TimerDel;
+	//FTimerHandle TimerHandle;
+
+	//TimerDel.BindUFunction(this, FName("PlayPainVoiceline"));
+
+	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 4.f, true);
+
 
 
 	if (WidgetHUDClass)
@@ -165,15 +133,20 @@ void AProjectSimulationCharacter::BeginPlay()
 
 void AProjectSimulationCharacter::TimelineFloatReturn(float val)
 {
-	float roll = pUseRoll ? FMath::Lerp(pOGCamera.Roll, pCamera.Roll, val) : Controller->GetControlRotation().Roll;
-	float yaw = pUseYaw ? Controller->GetControlRotation().Yaw : Controller->GetControlRotation().Yaw;
-	float pitch = pUsePitch ? FMath::Lerp(pOGCamera.Pitch, pCamera.Pitch, val) : Controller->GetControlRotation().Pitch;
-	FRotator temp;
-	temp.Roll = roll;
-	temp.Yaw = yaw;
-	temp.Pitch = pitch;
-	Controller->ClientSetRotation(temp);
+
+	if (!this->IsPendingKillPending() )
+	{
+		float roll = pUseRoll ? FMath::Lerp(pOGCamera.Roll, pCamera.Roll, val) : Controller->GetControlRotation().Roll;
+		float yaw = pUseYaw ? Controller->GetControlRotation().Yaw : Controller->GetControlRotation().Yaw;
+		float pitch = pUsePitch ? FMath::Lerp(pOGCamera.Pitch, pCamera.Pitch, val) : Controller->GetControlRotation().Pitch;
+		FRotator temp;
+		temp.Roll = roll;
+		temp.Yaw = yaw;
+		temp.Pitch = pitch;
+		Controller->ClientSetRotation(temp);
+	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -246,8 +219,16 @@ void AProjectSimulationCharacter::MoveForward(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
+		
+		//Footstep sound logic
+		if (!isPlayingFootstep)
+		{
+			PlayFootstep();
+		}
 	}
 }
+
+
 
 void AProjectSimulationCharacter::MoveRight(float Value)
 {
@@ -255,6 +236,11 @@ void AProjectSimulationCharacter::MoveRight(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
+
+		if (!isPlayingFootstep)
+		{
+			PlayFootstep();
+		}
 	}
 }
 
@@ -272,4 +258,83 @@ void AProjectSimulationCharacter::LookUpAtRate(float Rate)
 
 
 
+//////////////////////////////////////////////////////////////////////////
+// Manipulation Functions
 
+/*Useful function for timers*/
+void AProjectSimulationCharacter::BoolWait(bool& inBool)
+{
+	isPlayingFootstep = false;
+}
+
+
+/*Allows rotation of camera*/
+void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
+{
+
+	pOGCamera = GetFirstPersonCameraComponent()->GetComponentRotation();
+
+	pCamera = rotation;
+	pUseRoll = useRoll;
+	pUsePitch = usePitch;
+	pUseYaw = useYaw;
+	ScoreTimeline->PlayFromStart();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Sound Functions
+
+/*Plays a footstep sound*/
+void AProjectSimulationCharacter::PlayFootstep()
+{
+	UCharacterMovementComponent* cm = GetCharacterMovement();
+	if (!cm->IsFalling())
+	{
+		footstepCount++;
+		if (footstepCount > FootStepSounds.Num())
+			footstepCount = 0;
+
+
+		int32 id = footstepCount;
+
+		if (FootStepSounds.IsValidIndex(id))
+		{
+			USoundBase* chosenSound = FootStepSounds[id];
+			if (chosenSound != NULL)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+				isPlayingFootstep = true;
+				FTimerDelegate TimerDel;
+				FTimerHandle TimerHandle;
+
+				TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenSound->Duration), false);
+				TimerHandle.Invalidate();
+			}
+		}
+	}
+}
+
+/*Plays a random taunt sound*/
+void AProjectSimulationCharacter::PlayTauntVoiceline()
+{
+	int32 id = FMath::RandRange(0, TauntSounds.Num());
+	if (TauntSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = TauntSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+/*Plays a random pain sound*/
+void AProjectSimulationCharacter::PlayPainVoiceline()
+{
+	int32 id = FMath::RandRange(0, PainSounds.Num());
+	if (PainSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = PainSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}

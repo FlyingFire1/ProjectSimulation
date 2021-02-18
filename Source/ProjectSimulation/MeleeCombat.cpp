@@ -42,12 +42,17 @@ void UMeleeCombat::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor
 
 void UMeleeCombat::Attack()
 {
-
-	//For each actor, call receive damage.
+	TArray<AActor*> temp;
+	
+	//Transfer every unique actor into temp;
 	for (AActor* m : ovlAct)
-	{
+		temp.AddUnique(m);
+	
+
+	//For each actor in temp, call receive damage.
+	for (AActor* m : temp)
 		m->ReceiveAnyDamage(damageAmount, dt, GetOwner()->GetInstigatorController(), GetOwner());
-	}
+	
 
 	//For each proc mesh, split in half.
 	for (UProceduralMeshComponent* m : ovlPM)
@@ -99,6 +104,7 @@ void UMeleeCombat::BeginPlay()
 {
 	Super::BeginPlay();
 	box->OnComponentBeginOverlap.AddDynamic(this, &UMeleeCombat::OnOverlapBegin);        // set up a notification for when this component overlaps something
+	box->OnComponentEndOverlap.AddDynamic(this, &UMeleeCombat::OnOverlapEnd);        // set up a notification for when this component overlaps something
 }
 
 // Called every frame

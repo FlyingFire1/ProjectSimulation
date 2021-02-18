@@ -18,10 +18,6 @@ class PROJECTSIMULATION_API UMeleeCombat : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UMeleeCombat();
-	//Constructor for custom melee box
-	UMeleeCombat(UBoxComponent* boxComp);
-	UPROPERTY(Category = Registration, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* box;
 	UPROPERTY(EditAnywhere, Category = Damage)
 	float damageAmount;
 	UPROPERTY(EditAnywhere, Category = Slicing)
@@ -44,6 +40,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 private:
+	UPROPERTY(Category = Registration, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* box;
 	TArray<AActor*> ovlAct; //TArray of all overlapping actors;
 	TArray<UProceduralMeshComponent*> ovlPM;
 	UDamageType* dt;	//Damage Type, later defined as melee;
