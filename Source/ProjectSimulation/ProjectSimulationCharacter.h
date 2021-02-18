@@ -26,25 +26,9 @@ class AProjectSimulationCharacter : public ACharacter
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	class USceneComponent* FP_MuzzleLocation;
 
-	/** Gun mesh: VR view (attached to the VR controller directly, no arm, just the actual gun) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USkeletalMeshComponent* VR_Gun;
-
-	/** Location on VR gun mesh where projectiles should spawn. */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USceneComponent* VR_MuzzleLocation;
-
 	/** First person camera */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
-
-	/** Motion controller (right hand) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* R_MotionController;
-
-	/** Motion controller (left hand) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* L_MotionController;
 
 	/*Box for melee attacking*/
 	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -67,6 +51,7 @@ class AProjectSimulationCharacter : public ACharacter
 public:
 	AProjectSimulationCharacter();
 
+	UFUNCTION()
 	void RotateCamera(FRotator rotation, bool useRoll = true, bool usePitch = true, bool useYaw = true);
 
 protected:
@@ -88,18 +73,33 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
 	TSubclassOf<class AProjectSimulationProjectile> ProjectileClass;
 
-	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	class USoundBase* FireSound;
-
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
 
-	/** Whether to use motion controller location for aiming. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	uint32 bUsingMotionControllers : 1;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timeline")
+	UTimelineComponent* ScoreTimeline;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timeline")
+	UCurveFloat* fCurve;
+
+	FOnTimelineFloat InterpFunction{};
+
+	//Sounds 
+
+	/** Sounds that are used for footsteps */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> FootStepSounds;
+
+	/** Sounds that are used for taunts */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> TauntSounds;
+
+	/** Sounds that are used for pain */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> PainSounds;
 
 
 protected:
@@ -141,22 +141,28 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-
-
-	UPROPERTY()
-	UTimelineComponent* ScoreTimeline;
-
-	UPROPERTY()
-	UCurveFloat* fCurve;
-
-	FOnTimelineFloat InterpFunction{};
-
 	float lerp = 0.f;
+
+private:
 
 	UFUNCTION()
 	void TimelineFloatReturn(float val);
 
-private:
+	UFUNCTION()
+	void BoolWait(bool& inBool);
+
+	UFUNCTION()
+	void PlayFootstep();
+
+	UFUNCTION()
+	void PlayTauntVoiceline();
+
+	UFUNCTION()
+	void PlayPainVoiceline();
+
+	bool isPlayingFootstep = false;
+	int32 footstepCount = 0;
+
 	FRotator pOGCamera;
 	FRotator pCamera;
 	bool pUseRoll;
@@ -166,6 +172,7 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
+
 
 public:
 	/** Returns Mesh1P subobject **/
