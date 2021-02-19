@@ -72,6 +72,8 @@ protected:
 	void GrappleReset();
 private:
 
+	TArray<class AGrappleable*> CurrentlyRenderedGrapplePoints;
+
 	/***********************Double Jump***********************/
 	int pDoCounter = 0;
 	/*Jump up in air*/
