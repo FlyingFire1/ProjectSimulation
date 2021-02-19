@@ -189,19 +189,21 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlap(UPrimitiveComponent* Overla
 //Called upon the wall run box ends overlap with an object
 void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	bool canGo = false;
 	//here from testing, should be removed when u have time(u will probs forget)
 	if (OtherActor->ActorHasTag(TEXT("RunWall")))
 	{
 		pRunWallStr.Remove(OtherActor->GetUniqueID());
-
+		canGo = true;
 	}
 	else if (OtherComp->ComponentHasTag(TEXT("RunWall")))
 	{
 		pRunWallStr.Remove(OtherComp->GetUniqueID());
+		canGo = true;
 	}
 
 	//If array(wall run objects) is empty, do this
-	if (pRunWallStr.Num() == 0)
+	if ((pRunWallStr.Num() == 0) && canGo)
 	{
 		//Reset Gravity
 		isPlaying = false;
@@ -216,6 +218,10 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* Ove
 		FRotator newRot = player->GetFirstPersonCameraComponent()->GetComponentRotation();
 		newRot.Roll = 0;
 		player->RotateCamera(newRot, true, false, false);
+		if (Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.Z < 0.f)
+		{
+			Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.Z = 0.f;
+		}
 	}
 
 	
