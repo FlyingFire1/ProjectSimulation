@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "Engine.h"
 #include "Grappleable.h"
+#include "CableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UAdvancedMovementComponent::UAdvancedMovementComponent() 
@@ -88,38 +89,66 @@ void UAdvancedMovementComponent::OnGrapple()
 		if (FoundActors.Num() > 0)
 		{
 			//temp vars
-			FVector closest;
 			bool found = false;
-			AActor* object = nullptr;
+			TArray<AActor*> grappleObjects;
 
 			for (AActor* m : FoundActors)
 			{
-
-				//Getting if on screen
-				const APlayerController* const PlayerController = Cast<const APlayerController>(Cast<AProjectSimulationCharacter>(GetOwner())->GetController());
-				FVector2D ScreenLocation;
-				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("World delta for current frame equals %f %f"), ScreenLocation.X, ScreenLocation.Y));
-
-				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("triggered onscreen!"));
-				//Getting closest distance
-				if ((FVector::Dist(m->GetActorLocation(), GetOwner()->GetActorLocation()) < FVector::Dist(closest, GetOwner()->GetActorLocation())) && FVector::Dist(m->GetActorLocation(), GetOwner()->GetActorLocation()) < GrappleDistance)
+				//Getting closest rendered grapple point
+				if (CurrentlyRenderedGrapplePoints.Contains(m))
 				{
-					closest = m->GetActorLocation();
-					found = true;
-					object = m;
+					if (FVector::Dist(m->GetActorLocation(), GetOwner()->GetActorLocation()) < GrappleDistance)
+					{
+						grappleObjects.Add(m);
+						found = true;
+					}
 				}
 			}
 				
 			//if anything met previous criteria, execute
 			if (found)
 			{	
-				if (CurrentlyRenderedGrapplePoints.Contains(object)) //if the grapple point is being rendered
+				AActor* grappleTarget = nullptr;
+				if (grappleObjects.Num() > 0)
 				{
-					pHookLocation = closest;
-					FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
-					player->LaunchCharacter(hookMovement, true, true);
-					pCanGrapple = false; //Disable Grapple
+
+					FVector2D grappleTargetScreenLoc;
+					for (AActor* m : grappleObjects)
+					{
+						//Getting if on screen
+						const APlayerController* const PlayerController = Cast<const APlayerController>(Cast<AProjectSimulationCharacter>(GetOwner())->GetController());
+						FVector2D ScreenLocation;
+
+						PlayerController->ProjectWorldLocationToScreen(m->GetActorLocation(), ScreenLocation);
+
+						int32 sizeX;
+						int32 sizeY;
+
+						PlayerController->GetViewportSize(sizeX, sizeY);
+
+						if (FVector2D::Distance(FVector2D((sizeX / 2), (sizeY / 2)), ScreenLocation) < FVector2D::Distance(FVector2D((sizeX / 2), (sizeY / 2)), grappleTargetScreenLoc))
+						{
+							grappleTarget = m;
+							grappleTargetScreenLoc = ScreenLocation;
+						}
+					}
 				}
+
+
+				pHookLocation = grappleTarget->GetActorLocation();
+
+				GrappleCableComponent->SetWorldLocation(grappleTarget->GetActorLocation());
+				GrappleCableComponent->SetVisibility(true);
+
+				FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
+				player->LaunchCharacter(FVector(0,0,500), true, true);
+				FTimerDelegate TimerDel;
+				FTimerHandle TimerHandle;
+
+				TimerDel.BindUFunction(player, FName("LaunchCharacter"), hookMovement, false, false);
+
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 0.1f, false, 0.f);
+				pCanGrapple = false; //Disable Grapple
 			}
 
 		}
@@ -165,6 +194,7 @@ void UAdvancedMovementComponent::OnGrappleRelease()
 
 void UAdvancedMovementComponent::GrappleReset()
 {
+	GrappleCableComponent->SetVisibility(false);
 	pGrappleOverloadCheck = true;
 	pCanGrapple = true;
 }
@@ -314,6 +344,16 @@ void UAdvancedMovementComponent::SetWallRunBoxR(UBoxComponent* inBox)
 {
 	//Destroy current box and replace it
 	WallRunBoxRComponent = inBox;
+}
+
+void UAdvancedMovementComponent::SetGrappleCable(UCableComponent* inCable)
+{
+	GrappleCableComponent = inCable;
+	GrappleCableComponent->EndLocation = FVector(0, 0, 0);
+	GrappleCableComponent->CableLength = 0;
+	GrappleCableComponent->CableWidth = 8;
+	GrappleCableComponent->NumSegments = 2;
+	GrappleCableComponent->SetVisibility(false);
 }
 
 // Base Functions ***********************************************************************************

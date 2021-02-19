@@ -36,6 +36,8 @@ public:
 	void SetWallRunBoxL(class UBoxComponent* inBox);
 	UFUNCTION(BlueprintCallable)
 	void SetWallRunBoxR(class UBoxComponent* inBox);
+	UFUNCTION(BlueprintCallable)
+	void SetGrappleCable(class UCableComponent* inCable);
 
 	//The base wall run speed
 	UPROPERTY(EditAnywhere, Category = WallRun)
@@ -87,12 +89,13 @@ private:
 	bool pOnWall;
 	float pWallRunSpeed;
 	TArray<uint32_t> pRunWallStr;
-	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxLComponent;
-	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* WallRunBoxRComponent;
-
+	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* WallRunBoxRComponent;	
 	/***********************Grapple Hook***********************/
+	UPROPERTY(Category = "Grapple", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UCableComponent* GrappleCableComponent;
 	bool pCanGrapple = true;
 	bool pGrappleOverloadCheck = true;
 	FVector pHookLocation;

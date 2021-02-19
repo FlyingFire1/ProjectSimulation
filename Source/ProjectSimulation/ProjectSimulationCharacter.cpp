@@ -15,6 +15,7 @@
 #include "AdvancedMovementComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "CableComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -73,8 +74,10 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	MeleeCombat->damageAmount = 20.f;
 	MeleeCombat->SetBox(MeleeBox);
 
+	//Advanced Movement Setup //
 	AdvancedMovement = CreateDefaultSubobject<UAdvancedMovementComponent>(TEXT("AdvancedMovement"));
 
+	//Wall Run Boxes
 	WallRunBoxL = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBoxL"));
 	WallRunBoxL->SetupAttachment(GetCapsuleComponent());
 	WallRunBoxL->SetGenerateOverlapEvents(true);
@@ -87,7 +90,11 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	WallRunBoxR->SetCollisionProfileName("OverlapAll");
 	AdvancedMovement->SetWallRunBoxR(WallRunBoxR);
 
+	//Grapple Cable
+	GrappleCable = CreateDefaultSubobject<UCableComponent>(TEXT("Grapple Cable"));
+	AdvancedMovement->SetGrappleCable(GrappleCable);
 
+	// Timeline Setup //
 	const ConstructorHelpers::FObjectFinder<UCurveFloat> Curve(TEXT("CurveFloat'/Game/FirstPersonCPP/Blueprints/LinCurve.LinCurve'"));
 	if (Curve.Object) {
 		fCurve = Curve.Object;
@@ -135,7 +142,6 @@ void AProjectSimulationCharacter::TimelineFloatReturn(float val)
 		Controller->ClientSetRotation(temp);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

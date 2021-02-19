@@ -41,14 +41,17 @@ class AProjectSimulationCharacter : public ACharacter
 	class UMeleeCombat* MeleeCombat;
 
 	/*Box for melee attacking*/
-	UPROPERTY(Category = AdvMovement, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "AdvMovement", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxL;
 
 	/*Box for melee attacking*/
-	UPROPERTY(Category = AdvMovement, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "AdvMovement", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxR;
 
-	UPROPERTY(Category = AdvMovement, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "AdvMovement", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UCableComponent* GrappleCable;
+
+	UPROPERTY(Category = "AdvMovement", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UAdvancedMovementComponent* AdvancedMovement;
 public:
 	AProjectSimulationCharacter();
