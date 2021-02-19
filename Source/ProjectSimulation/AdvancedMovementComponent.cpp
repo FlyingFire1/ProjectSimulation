@@ -60,8 +60,13 @@ void UAdvancedMovementComponent::DoLunge(bool resetMomementom)
 
 	//Get forward vector of rotation
 	FVector temp = rot.Vector();
-	temp *= 1000;
+	if (resetMomementom)
+		temp *= Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.GetAbsMax();
+	else
+		temp *= 1000.f;
+	
 	temp.Z = 700.f;
+
 
 	Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, resetMomementom, true);
 }
