@@ -7,6 +7,8 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "Engine.h"
+#include "Grappleable.h"
+#include "CableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UAdvancedMovementComponent::UAdvancedMovementComponent() 
@@ -24,10 +26,12 @@ void UAdvancedMovementComponent::Jump()
 	switch (pDoCounter)
 	{
 	case(1):
+		Cast<AProjectSimulationCharacter>(GetOwner())->PlayJumpVoiceline();
 		DoJump();
 		break;
 	case(2):
 		Cast<AProjectSimulationCharacter>(GetOwner())->RotateCamera(FRotator(5.f, 0.f, 0.f), false, true, false);
+		Cast<AProjectSimulationCharacter>(GetOwner())->PlayVaultVoiceline();
 		DoLunge(true);
 		break;
 	default:
@@ -58,8 +62,13 @@ void UAdvancedMovementComponent::DoLunge(bool resetMomementom)
 
 	//Get forward vector of rotation
 	FVector temp = rot.Vector();
-	temp *= 1000;
+	if (resetMomementom)
+		temp *= Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.GetAbsMax();
+	else
+		temp *= 1000.f;
+	
 	temp.Z = 700.f;
+
 
 	Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, resetMomementom, true);
 }
@@ -71,26 +80,98 @@ void UAdvancedMovementComponent::OnGrapple()
 	{
 		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
 
-		//Check For Hit
-		FVector forVector = player->GetFirstPersonCameraComponent()->GetComponentLocation() + (player->Controller->GetControlRotation().Vector() * GrappleDistance);
-		FHitResult* hr = new FHitResult();
+		//Find all grappleable actors
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGrappleable::StaticClass(), FoundActors);
 
 
-		if (GetWorld()->LineTraceSingleByChannel(*hr, player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, ECC_Visibility))
+		//if we actually found anything execute
+		if (FoundActors.Num() > 0)
 		{
-			//Verifying Actor(Stops Crash)
-			if (hr->GetActor()->IsValidLowLevel())
+			//temp vars
+			bool found = false;
+			TArray<AActor*> grappleObjects;
+
+			for (AActor* m : FoundActors)
 			{
-				//If object has the tag "CanGrapple" then grapple object
-				if (hr->GetActor()->ActorHasTag(TEXT("CanGrapple")) || hr->GetComponent()->ComponentHasTag(TEXT("CanGrapple")))
+				//Getting closest rendered grapple point
+				if (CurrentlyRenderedGrapplePoints.Contains(m))
 				{
-					pHookLocation = hr->Location;
-					FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
-					player->LaunchCharacter(hookMovement, true, true);
-					pCanGrapple = false; //Disable Grapple
+					if (FVector::Dist(m->GetActorLocation(), GetOwner()->GetActorLocation()) < GrappleDistance)
+					{
+						grappleObjects.Add(m);
+						found = true;
+					}
 				}
 			}
+				
+			//if anything met previous criteria, execute
+			if (found)
+			{	
+				AActor* grappleTarget = nullptr;
+				if (grappleObjects.Num() > 0)
+				{
+
+					FVector2D grappleTargetScreenLoc;
+					for (AActor* m : grappleObjects)
+					{
+						//Getting if on screen
+						const APlayerController* const PlayerController = Cast<const APlayerController>(Cast<AProjectSimulationCharacter>(GetOwner())->GetController());
+						FVector2D ScreenLocation;
+
+						PlayerController->ProjectWorldLocationToScreen(m->GetActorLocation(), ScreenLocation);
+
+						int32 sizeX;
+						int32 sizeY;
+
+						PlayerController->GetViewportSize(sizeX, sizeY);
+
+						if (FVector2D::Distance(FVector2D((sizeX / 2), (sizeY / 2)), ScreenLocation) < FVector2D::Distance(FVector2D((sizeX / 2), (sizeY / 2)), grappleTargetScreenLoc))
+						{
+							grappleTarget = m;
+							grappleTargetScreenLoc = ScreenLocation;
+						}
+					}
+				}
+
+
+				pHookLocation = grappleTarget->GetActorLocation();
+
+				GrappleCableComponent->SetWorldLocation(grappleTarget->GetActorLocation());
+				GrappleCableComponent->SetVisibility(true);
+
+				FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
+				player->LaunchCharacter(FVector(0,0,500), true, true);
+				FTimerDelegate TimerDel;
+				FTimerHandle TimerHandle;
+
+				TimerDel.BindUFunction(player, FName("LaunchCharacter"), hookMovement, false, false);
+
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 0.1f, false, 0.f);
+				pCanGrapple = false; //Disable Grapple
+			}
+
 		}
+		////Grapple from trace LEGACY
+
+		////Check For Hit
+		//FVector forVector = player->GetFirstPersonCameraComponent()->GetComponentLocation() + (player->Controller->GetControlRotation().Vector() * GrappleDistance);
+		//FHitResult* hr = new FHitResult();
+		//if (GetWorld()->LineTraceSingleByChannel(*hr, player->GetFirstPersonCameraComponent()->GetComponentLocation(), forVector, ECC_Visibility))
+		//{
+		//	//Verifying Actor(Stops Crash)
+		//	if (hr->GetActor()->IsValidLowLevel())
+		//	{
+		//		//If object has the tag "CanGrapple" then grapple object
+		//		if (hr->GetActor()->ActorHasTag(TEXT("CanGrapple")) || hr->GetComponent()->ComponentHasTag(TEXT("CanGrapple")))
+		//		{
+		//			pHookLocation = hr->Location;
+		//			FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
+		//			player->LaunchCharacter(hookMovement, true, true);
+		//			pCanGrapple = false; //Disable Grapple
+		//		}
+		//	}
+		//}
 	}
 }
 
@@ -106,12 +187,14 @@ void UAdvancedMovementComponent::OnGrappleRelease()
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, GrappleDelay, false);
 		TimerHandle.Invalidate();
 		pGrappleOverloadCheck = false;
+
 	}
 }
 
 
 void UAdvancedMovementComponent::GrappleReset()
 {
+	GrappleCableComponent->SetVisibility(false);
 	pGrappleOverloadCheck = true;
 	pCanGrapple = true;
 }
@@ -187,19 +270,21 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlap(UPrimitiveComponent* Overla
 //Called upon the wall run box ends overlap with an object
 void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	bool canGo = false;
 	//here from testing, should be removed when u have time(u will probs forget)
 	if (OtherActor->ActorHasTag(TEXT("RunWall")))
 	{
 		pRunWallStr.Remove(OtherActor->GetUniqueID());
-
+		canGo = true;
 	}
 	else if (OtherComp->ComponentHasTag(TEXT("RunWall")))
 	{
 		pRunWallStr.Remove(OtherComp->GetUniqueID());
+		canGo = true;
 	}
 
 	//If array(wall run objects) is empty, do this
-	if (pRunWallStr.Num() == 0)
+	if ((pRunWallStr.Num() == 0) && canGo)
 	{
 		//Reset Gravity
 		isPlaying = false;
@@ -214,6 +299,10 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* Ove
 		FRotator newRot = player->GetFirstPersonCameraComponent()->GetComponentRotation();
 		newRot.Roll = 0;
 		player->RotateCamera(newRot, true, false, false);
+		if (Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.Z < 0.f)
+		{
+			Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.Z = 0.f;
+		}
 	}
 
 	
@@ -257,6 +346,16 @@ void UAdvancedMovementComponent::SetWallRunBoxR(UBoxComponent* inBox)
 	WallRunBoxRComponent = inBox;
 }
 
+void UAdvancedMovementComponent::SetGrappleCable(UCableComponent* inCable)
+{
+	GrappleCableComponent = inCable;
+	GrappleCableComponent->EndLocation = FVector(0, 0, 0);
+	GrappleCableComponent->CableLength = 0;
+	GrappleCableComponent->CableWidth = 8;
+	GrappleCableComponent->NumSegments = 2;
+	GrappleCableComponent->SetVisibility(false);
+}
+
 // Base Functions ***********************************************************************************
 void UAdvancedMovementComponent::BeginPlay()
 {
@@ -277,6 +376,24 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	//Making my own timeline function(probs mega inefficio but whatevers)
 	if (isPlaying)
 		TickTimeline();
-}
 
+	//Thanks Rama :)
+	UWorld* const World = GEngine->GetWorldFromContextObject(GetOwner(), EGetWorldErrorMode::ReturnNull);
+
+	//Ge all Grappleables in world
+	for (TActorIterator<AGrappleable> Itr(World); Itr; ++Itr)
+	{
+		//Actor is rendered
+		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() <= 0.01f)
+		{
+			CurrentlyRenderedGrapplePoints.Add(*Itr);
+		}
+		//Actor is unrendered
+		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() > 0.01f)
+		{
+			CurrentlyRenderedGrapplePoints.Remove(*Itr);
+		}
+		
+	}
+}
 //***********************************************************************************
