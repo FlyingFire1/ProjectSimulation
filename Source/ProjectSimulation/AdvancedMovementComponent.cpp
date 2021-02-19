@@ -11,11 +11,11 @@
 #include "CableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-UAdvancedMovementComponent::UAdvancedMovementComponent() 
+UAdvancedMovementComponent::UAdvancedMovementComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	/*WallRunBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBox"));*/
-	
+
 }
 
 // Double Jump ***********************************************************************************
@@ -66,7 +66,7 @@ void UAdvancedMovementComponent::DoLunge(bool resetMomementom)
 		temp *= Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.GetAbsMax();
 	else
 		temp *= 1000.f;
-	
+
 	temp.Z = 700.f;
 
 
@@ -104,10 +104,10 @@ void UAdvancedMovementComponent::OnGrapple()
 					}
 				}
 			}
-				
+
 			//if anything met previous criteria, execute
 			if (found)
-			{	
+			{
 				AActor* grappleTarget = nullptr;
 				if (grappleObjects.Num() > 0)
 				{
@@ -134,21 +134,23 @@ void UAdvancedMovementComponent::OnGrapple()
 					}
 				}
 
+				if (grappleTarget->IsValidLowLevel())
+				{
+					pHookLocation = grappleTarget->GetActorLocation();
 
-				pHookLocation = grappleTarget->GetActorLocation();
+					GrappleCableComponent->SetWorldLocation(grappleTarget->GetActorLocation());
+					GrappleCableComponent->SetVisibility(true);
 
-				GrappleCableComponent->SetWorldLocation(grappleTarget->GetActorLocation());
-				GrappleCableComponent->SetVisibility(true);
+					FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
+					player->LaunchCharacter(FVector(0, 0, 500), true, true);
+					FTimerDelegate TimerDel;
+					FTimerHandle TimerHandle;
 
-				FVector hookMovement = (pHookLocation - player->GetFirstPersonCameraComponent()->GetComponentLocation()) * GrappleSpeed;
-				player->LaunchCharacter(FVector(0,0,500), true, true);
-				FTimerDelegate TimerDel;
-				FTimerHandle TimerHandle;
+					TimerDel.BindUFunction(player, FName("LaunchCharacter"), hookMovement, false, false);
 
-				TimerDel.BindUFunction(player, FName("LaunchCharacter"), hookMovement, false, false);
-
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 0.1f, false, 0.f);
-				pCanGrapple = false; //Disable Grapple
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 0.1f, false, 0.f);
+					pCanGrapple = false; //Disable Grapple
+				}
 			}
 
 		}
@@ -305,7 +307,7 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* Ove
 		}
 	}
 
-	
+
 }
 
 void UAdvancedMovementComponent::OnWallRunBoxHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -362,7 +364,7 @@ void UAdvancedMovementComponent::BeginPlay()
 	//Binding WallRunBox functions
 	WallRunBoxLComponent->OnComponentBeginOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlap);
 	WallRunBoxLComponent->OnComponentEndOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlapEnd);
-	
+
 	WallRunBoxRComponent->OnComponentBeginOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlap);
 	WallRunBoxRComponent->OnComponentEndOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlapEnd);
 
@@ -393,7 +395,7 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 		{
 			CurrentlyRenderedGrapplePoints.Remove(*Itr);
 		}
-		
+
 	}
 }
 //***********************************************************************************
