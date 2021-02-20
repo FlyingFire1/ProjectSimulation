@@ -33,3 +33,18 @@ void AProjectSimulationHUD::DrawHUD()
 	TileItem.BlendMode = SE_BLEND_Translucent;
 	Canvas->DrawItem( TileItem );
 }
+
+void AProjectSimulationHUD::BeginPlay()
+{
+	if (HitComboWidgetClass)
+	{
+		HitComboWidget = CreateWidget<UHUDWidget>(GetWorld(), HitComboWidgetClass);
+
+		/** Make sure widget was created */
+		if (HitComboWidget)
+		{
+			/** Add it to the viewport */
+			HitComboWidget->AddToViewport();
+		}
+	}
+}

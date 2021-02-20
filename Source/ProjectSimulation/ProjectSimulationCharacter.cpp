@@ -117,16 +117,18 @@ void AProjectSimulationCharacter::BeginPlay()
 
 
 
-	if (WidgetHUDClass)
-	{
-		HUDWidget = CreateWidget<UHUDWidget>(GetWorld(), WidgetHUDClass);
-		/** Make sure widget was created */
-		if (HUDWidget)
-		{
-			/** Add it to the viewport */
-			HUDWidget->AddToViewport();
-		}
-	}
+	//if (WidgetHUDClass)
+	//{
+
+	//	HUDWidget = CreateWidget<UHUDWidget>(GetWorld(), WidgetHUDClass);
+	//	/** Make sure widget was created */
+	//	if (HUDWidget)
+	//	{
+	//		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Some debug message!"));
+	//		/** Add it to the viewport */
+	//		HUDWidget->AddToViewport();
+	//	}
+	//}
 		ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
 }
 
