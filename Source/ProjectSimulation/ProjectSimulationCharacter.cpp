@@ -15,6 +15,7 @@
 #include "AdvancedMovementComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "CableComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -73,8 +74,10 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	MeleeCombat->damageAmount = 20.f;
 	MeleeCombat->SetBox(MeleeBox);
 
+	//Advanced Movement Setup //
 	AdvancedMovement = CreateDefaultSubobject<UAdvancedMovementComponent>(TEXT("AdvancedMovement"));
 
+	//Wall Run Boxes
 	WallRunBoxL = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBoxL"));
 	WallRunBoxL->SetupAttachment(GetCapsuleComponent());
 	WallRunBoxL->SetGenerateOverlapEvents(true);
@@ -87,7 +90,11 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	WallRunBoxR->SetCollisionProfileName("OverlapAll");
 	AdvancedMovement->SetWallRunBoxR(WallRunBoxR);
 
+	//Grapple Cable
+	GrappleCable = CreateDefaultSubobject<UCableComponent>(TEXT("Grapple Cable"));
+	AdvancedMovement->SetGrappleCable(GrappleCable);
 
+	// Timeline Setup //
 	const ConstructorHelpers::FObjectFinder<UCurveFloat> Curve(TEXT("CurveFloat'/Game/FirstPersonCPP/Blueprints/LinCurve.LinCurve'"));
 	if (Curve.Object) {
 		fCurve = Curve.Object;
@@ -148,7 +155,6 @@ void AProjectSimulationCharacter::TimelineFloatReturn(float val)
 		Controller->ClientSetRotation(temp);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -322,7 +328,7 @@ void AProjectSimulationCharacter::PlayFootstep()
 /*Plays a random taunt sound*/
 void AProjectSimulationCharacter::PlayTauntVoiceline()
 {
-	int32 id = FMath::RandRange(0, TauntSounds.Num());
+	int32 id = FMath::RandRange(0, (TauntSounds.Num()-1));
 	if (TauntSounds.IsValidIndex(id))
 	{
 		USoundBase* chosenSound = TauntSounds[id];
@@ -333,10 +339,30 @@ void AProjectSimulationCharacter::PlayTauntVoiceline()
 /*Plays a random pain sound*/
 void AProjectSimulationCharacter::PlayPainVoiceline()
 {
-	int32 id = FMath::RandRange(0, PainSounds.Num());
+	int32 id = FMath::RandRange(0, (PainSounds.Num()-1));
 	if (PainSounds.IsValidIndex(id))
 	{
 		USoundBase* chosenSound = PainSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+void AProjectSimulationCharacter::PlayVaultVoiceline()
+{
+	int32 id = FMath::RandRange(0, (JumpSounds.Num()-1));
+	if (JumpSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = JumpSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+void AProjectSimulationCharacter::PlayJumpVoiceline()
+{
+	int32 id = FMath::RandRange(0, (VaultSounds.Num()-1));
+	if (VaultSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = VaultSounds[id];
 		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
 	}
 }

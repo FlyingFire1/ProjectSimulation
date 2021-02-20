@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/MovementComponent.h"
+#include "ProjectSimulationCharacter.h"
 #include "Components/TimelineComponent.h"
 #include "AdvancedMovementComponent.generated.h"
 
@@ -19,7 +20,6 @@ class PROJECTSIMULATION_API UAdvancedMovementComponent : public UActorComponent
 	GENERATED_BODY()
 public:
 	UAdvancedMovementComponent();
-
 	/*********************** Double Jump ***********************/
 	//Jump, with double jump logic
 	UFUNCTION()
@@ -36,6 +36,8 @@ public:
 	void SetWallRunBoxL(class UBoxComponent* inBox);
 	UFUNCTION(BlueprintCallable)
 	void SetWallRunBoxR(class UBoxComponent* inBox);
+	UFUNCTION(BlueprintCallable)
+	void SetGrappleCable(class UCableComponent* inCable);
 
 	//The base wall run speed
 	UPROPERTY(EditAnywhere, Category = WallRun)
@@ -72,6 +74,8 @@ protected:
 	void GrappleReset();
 private:
 
+	TArray<class AGrappleable*> CurrentlyRenderedGrapplePoints;
+
 	/***********************Double Jump***********************/
 	int pDoCounter = 0;
 	/*Jump up in air*/
@@ -85,12 +89,13 @@ private:
 	bool pOnWall;
 	float pWallRunSpeed;
 	TArray<uint32_t> pRunWallStr;
-	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxLComponent;
-	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* WallRunBoxRComponent;
-
+	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* WallRunBoxRComponent;	
 	/***********************Grapple Hook***********************/
+	UPROPERTY(Category = "Grapple", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UCableComponent* GrappleCableComponent;
 	bool pCanGrapple = true;
 	bool pGrappleOverloadCheck = true;
 	FVector pHookLocation;
