@@ -29,6 +29,9 @@ public:
 	UFUNCTION()
 	void JumpReset();
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsDoubleJumping() const { return isDoubleJumping; };
+
 
 	/*********************** Wall Run ***********************/
 	//Set box for wall run logic
@@ -78,7 +81,8 @@ private:
 	void DoJump();
 	/*Jump and lunge based on camera direction*/
 	void DoLunge(bool resetMomementom);
-
+	/*For Anims*/
+	bool isDoubleJumping = false;
 	/***********************Wallrunning***********************/
 	bool isPlaying = false;
 	FVector pPlayerDirection;
