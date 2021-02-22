@@ -116,6 +116,18 @@ protected:
 	// Called on release of Jumping
 	void OnJumpRelease();
 
+	// Called on Crouch
+	void OnCrouch();
+
+	// Called on release of Crouch
+	void OnCrouchRelease();	
+	
+	// Called on Sprint
+	void OnSprint();
+
+	// Called on release of Sprint
+	void OnSprintRelease();
+
 	// Called upon hitting the ground, virtual function
 	virtual void Landed(const FHitResult& Hit) override;
 

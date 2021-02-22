@@ -15,7 +15,6 @@ UAdvancedMovementComponent::UAdvancedMovementComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	/*WallRunBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBox"));*/
-
 }
 
 // Double Jump ***********************************************************************************
@@ -51,7 +50,23 @@ void UAdvancedMovementComponent::DoJump()
 	if (pOnWall)
 		DoLunge(false);
 	else
-		Cast<ACharacter>(GetOwner())->LaunchCharacter(FVector(0, 0, 420), false, true);
+	{
+		if (pIsSlidingDown)
+		{
+			FRotator rot = Cast<AProjectSimulationCharacter>(GetOwner())->Controller->GetControlRotation();
+			rot.Pitch = 60.f;
+			rot.Roll = 0.f;
+
+			//Get forward vector of rotation
+			FVector temp = rot.Vector();
+			temp *= 5000.f;
+			temp.Z = 200.f;
+			Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, true, true);
+			pIsSlidingDown = false;
+		}
+		else
+			Cast<ACharacter>(GetOwner())->LaunchCharacter(FVector(0, 0, 420), false, true);
+	}
 }
 void UAdvancedMovementComponent::DoLunge(bool resetMomementom)
 {
@@ -290,9 +305,8 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* Ove
 	{
 		//Reset Gravity
 		isPlaying = false;
-		UCharacterMovementComponent* cm = Cast<AProjectSimulationCharacter>(GetOwner())->GetCharacterMovement();
-		cm->GravityScale = 1.f;
-		cm->SetPlaneConstraintNormal(FVector(0, 0, 0));
+		pOCM->GravityScale = 1.f;
+		pOCM->SetPlaneConstraintNormal(FVector(0, 0, 0));
 		pOnWall = false;
 
 		AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
@@ -301,9 +315,9 @@ void UAdvancedMovementComponent::OnWallRunBoxOverlapEnd(UPrimitiveComponent* Ove
 		FRotator newRot = player->GetFirstPersonCameraComponent()->GetComponentRotation();
 		newRot.Roll = 0;
 		player->RotateCamera(newRot, true, false, false);
-		if (Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.Z < 0.f)
+		if (pOCM->Velocity.Z < 0.f)
 		{
-			Cast<ACharacter>(GetOwner())->GetCharacterMovement()->Velocity.Z = 0.f;
+			pOCM->Velocity.Z = 0.f;
 		}
 	}
 
@@ -314,13 +328,11 @@ void UAdvancedMovementComponent::OnWallRunBoxHit(UPrimitiveComponent* HitCompone
 {
 	if (OtherComp->ComponentHasTag(TEXT("RunWall")))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, Hit.Location.ToText().ToString());
 	}
 }
 
 void UAdvancedMovementComponent::TickTimeline()
 {
-	UCharacterMovementComponent* cm = Cast<AProjectSimulationCharacter>(GetOwner())->GetCharacterMovement();
 	pWallRunSpeed *= 1.05;
 	//Clamp wallrun speed
 	if (pWallRunSpeed >= 100000)
@@ -329,9 +341,9 @@ void UAdvancedMovementComponent::TickTimeline()
 	if (pOnWall)
 	{
 		//Constrain to the wall and force to run across it
-		cm->SetPlaneConstraintNormal(FVector(0.f, 0.f, 1.f));
-		cm->GravityScale = 0.f;
-		cm->AddForce(pPlayerDirection * pWallRunSpeed);
+		pOCM->SetPlaneConstraintNormal(FVector(0.f, 0.f, 1.f));
+		pOCM->GravityScale = 0.f;
+		pOCM->AddForce(pPlayerDirection * pWallRunSpeed);
 	}
 }
 
@@ -358,19 +370,79 @@ void UAdvancedMovementComponent::SetGrappleCable(UCableComponent* inCable)
 	GrappleCableComponent->SetVisibility(false);
 }
 
+
+// Crouch Functions ***********************************************************************************
+
+
+void UAdvancedMovementComponent::OnCrouch()
+{
+
+	if (pOCM->IsFalling())
+	{
+		pWaitCrouch = true; //Telling to wait until hit ground.
+	}
+	else
+	{
+		//Check if sprinting
+		if ((GetOwner()->GetVelocity().GetAbs().X > pWalkSpeed) || (GetOwner()->GetVelocity().GetAbs().Y > pWalkSpeed) || (GetOwner()->GetVelocity().GetAbs().Z > pWalkSpeed))
+		{
+			PlaySlide();
+		}
+		else
+		{
+			Cast<AProjectSimulationCharacter>(GetOwner())->Crouch();
+		}
+	}
+}
+
+void UAdvancedMovementComponent::OnCrouchRelease()
+{
+	pWaitCrouch = false;
+	Cast<AProjectSimulationCharacter>(GetOwner())->UnCrouch();
+	pSlideTime = 0.f;
+}
+
+// Slide Functions **********************************************************************************
+void UAdvancedMovementComponent::PlaySlide()
+{
+	pSlideDir = GetOwner()->GetVelocity();
+	pSlideDir.Normalize(0.0001f);
+	Cast<AProjectSimulationCharacter>(GetOwner())->Crouch();
+	pSlideTime = 1;
+}
+
+// Sprint Functions *********************************************************************************
+
+void UAdvancedMovementComponent::OnSprint()
+{
+	pOCM->MaxWalkSpeed = pRunSpeed;
+}
+
+void UAdvancedMovementComponent::OnSprintRelease()
+{
+	pOCM->MaxWalkSpeed = pWalkSpeed;
+}
 // Base Functions ***********************************************************************************
 void UAdvancedMovementComponent::BeginPlay()
 {
 	//Binding WallRunBox functions
+	//L
 	WallRunBoxLComponent->OnComponentBeginOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlap);
 	WallRunBoxLComponent->OnComponentEndOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlapEnd);
 
+	//R
 	WallRunBoxRComponent->OnComponentBeginOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlap);
 	WallRunBoxRComponent->OnComponentEndOverlap.AddDynamic(this, &UAdvancedMovementComponent::OnWallRunBoxOverlapEnd);
 
+	//Getting character movement as value, just for ease
+	pOCM = Cast<AProjectSimulationCharacter>(GetOwner())->GetCharacterMovement();
+
+	//Bind Walking/Running Speeds
+	pWalkSpeed = pOCM->GetMaxSpeed();
+	pRunSpeed = pWalkSpeed * 2;
+
 	//Setting Plane Constraints
-	UCharacterMovementComponent* cm = Cast<AProjectSimulationCharacter>(GetOwner())->GetCharacterMovement();
-	cm->SetPlaneConstraintEnabled(true);
+	pOCM->SetPlaneConstraintEnabled(true);
 }
 
 void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -382,7 +454,7 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	//Thanks Rama :)
 	UWorld* const World = GEngine->GetWorldFromContextObject(GetOwner(), EGetWorldErrorMode::ReturnNull);
 
-	//Ge all Grappleables in world
+	//Get all Grappleables in world
 	for (TActorIterator<AGrappleable> Itr(World); Itr; ++Itr)
 	{
 		//Actor is rendered
@@ -396,6 +468,47 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 			CurrentlyRenderedGrapplePoints.Remove(*Itr);
 		}
 
+	}
+
+
+	//Slide Logic ****************************************************
+
+	//OnLanded is bugged and doesn't set isFalling to false the frame it is called, so I use this as a workaround
+	if ((GetOwner()->GetVelocity().Z == 0.f) && pWaitCrouch)
+	{
+		pWaitCrouch = false;
+		PlaySlide();
+	}
+
+
+	//Check if Sliding down hill
+	bool slideDownCheck = (GetOwner()->GetActorLocation().Z < pPreviousFrameLoc.Z) && pOCM->IsCrouching() && !(pOCM->IsFalling());
+
+	//Vector launch to apply
+	FVector slideApply = ((pSlideDir * 2.0f) * (500.f * DeltaTime));
+
+
+	if (!(pSlideTime <= 0.f))
+	{
+		if (!slideDownCheck && pOCM->IsCrouching())
+		{
+			Cast<AProjectSimulationCharacter>(GetOwner())->LaunchCharacter(slideApply * 2, false, false); //Launch Character in Slide Location
+			pSlideTime -= DeltaTime; //Decrease Slide Time by Delta Time
+
+			//Get Prev Frame Location for next Loop
+			pPreviousFrameLoc = (GetOwner()->GetActorLocation());
+		}
+	}
+
+	//Bogged way of checking if going down hill
+	if (slideDownCheck)
+	{
+		GetOwner()->AddActorWorldOffset(slideApply * 3); //Add offset for smoother slide, no clue why
+		pIsSlidingDown = true; //Used for BP and for jump
+		pSlideTime += 1.f * DeltaTime; //Add slide time for longer slide when hitting the bottom of a slope.currently redundant 1.f but whatevs
+
+		//Get Prev Frame Location for next Loop
+		pPreviousFrameLoc = (GetOwner()->GetActorLocation());
 	}
 }
 //***********************************************************************************
