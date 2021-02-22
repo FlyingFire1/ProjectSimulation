@@ -33,12 +33,17 @@ public:
 	FORCEINLINE bool GetIsDoubleJumping() const { return isDoubleJumping; };
 
 
+
 	/*********************** Wall Run ***********************/
 	//Set box for wall run logic
 	UFUNCTION(BlueprintCallable)
 	void SetWallRunBoxL(class UBoxComponent* inBox);
 	UFUNCTION(BlueprintCallable)
 	void SetWallRunBoxR(class UBoxComponent* inBox);
+
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsWallRunning() const { return pOnWall; };
 
 	//The base wall run speed
 	UPROPERTY(EditAnywhere, Category = WallRun)
