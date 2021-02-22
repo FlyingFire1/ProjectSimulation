@@ -40,6 +40,8 @@ public:
 	void SetWallRunBoxL(class UBoxComponent* inBox);
 	UFUNCTION(BlueprintCallable)
 	void SetWallRunBoxR(class UBoxComponent* inBox);
+	UFUNCTION(BlueprintCallable)
+	void SetGrappleCable(class UCableComponent* inCable);
 
 
 	UFUNCTION(BlueprintCallable)
@@ -48,6 +50,27 @@ public:
 	//The base wall run speed
 	UPROPERTY(EditAnywhere, Category = WallRun)
 	float WallRunSpeed = 2000.f;
+
+	/*********************** Crouch ***********************/
+
+	UFUNCTION()
+	void OnCrouch();
+
+	UFUNCTION()
+	void OnCrouchRelease();
+
+
+	/*********************** Slide ***********************/
+
+	UFUNCTION()
+	void PlaySlide();
+
+	/*********************** Sprint **********************/
+	UFUNCTION()
+	void OnSprint();
+
+	UFUNCTION()
+	void OnSprintRelease();
 
 	/*********************** Grapple ***********************/
 	UFUNCTION()
@@ -75,11 +98,14 @@ protected:
 	void OnWallRunBoxHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 	UFUNCTION()
 	void TickTimeline();
+
 	/***********************Grapple Hook***********************/
 	UFUNCTION()
 	void GrappleReset();
 private:
 
+	TArray<class AGrappleable*> CurrentlyRenderedGrapplePoints; //Array of Currently rendered grapple points
+	class UCharacterMovementComponent* pOCM; //Owner Character Movement
 	/***********************Double Jump***********************/
 	int pDoCounter = 0;
 	/*Jump up in air*/
@@ -94,12 +120,25 @@ private:
 	bool pOnWall;
 	float pWallRunSpeed;
 	TArray<uint32_t> pRunWallStr;
-	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxLComponent;
-	UPROPERTY(Category = Melee, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* WallRunBoxRComponent;
+	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* WallRunBoxRComponent;	
+
+	/*********************** Sprint **********************/
+	float pWalkSpeed;
+	float pRunSpeed;
+
+	/*********************** Slide ***********************/
+	FVector pPreviousFrameLoc = FVector(0,0,100000.f);
+	FVector pSlideDir;
+	float pSlideTime = 0.f;
+	bool pWaitCrouch = false;
+	bool pIsSlidingDown = false;
 
 	/***********************Grapple Hook***********************/
+	UPROPERTY(Category = "Grapple", EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UCableComponent* GrappleCableComponent;
 	bool pCanGrapple = true;
 	bool pGrappleOverloadCheck = true;
 	FVector pHookLocation;
