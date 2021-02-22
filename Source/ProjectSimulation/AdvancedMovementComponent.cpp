@@ -31,6 +31,7 @@ void UAdvancedMovementComponent::Jump()
 	case(2):
 		Cast<AProjectSimulationCharacter>(GetOwner())->RotateCamera(FRotator(5.f, 0.f, 0.f), false, true, false);
 		Cast<AProjectSimulationCharacter>(GetOwner())->PlayVaultVoiceline();
+		isDoubleJumping = true;
 		DoLunge(true);
 		break;
 	default:
@@ -41,9 +42,9 @@ void UAdvancedMovementComponent::Jump()
 void UAdvancedMovementComponent::JumpReset()
 {
 	Cast<AProjectSimulationCharacter>(GetOwner())->RotateCamera(FRotator(-2.5f, 0.f, 0.f), false, true, false);
+	isDoubleJumping = false;
 	pDoCounter = 0;
 }
-
 
 void UAdvancedMovementComponent::DoJump()
 {
