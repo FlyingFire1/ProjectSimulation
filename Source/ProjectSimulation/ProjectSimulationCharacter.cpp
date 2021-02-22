@@ -163,6 +163,14 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 	PlayerInputComponent->BindAction("Grapple", IE_Pressed, this, &AProjectSimulationCharacter::OnGrapple);
 	PlayerInputComponent->BindAction("Grapple", IE_Released, this, &AProjectSimulationCharacter::OnGrappleRelease);
 
+	//Bind Crouch event
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AProjectSimulationCharacter::OnCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AProjectSimulationCharacter::OnCrouchRelease);
+
+	//Bind Sprint event
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AProjectSimulationCharacter::OnSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AProjectSimulationCharacter::OnSprintRelease);
+
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AProjectSimulationCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AProjectSimulationCharacter::MoveRight);
@@ -206,6 +214,26 @@ void AProjectSimulationCharacter::OnJump()
 void AProjectSimulationCharacter::OnJumpRelease()
 {
 	StopJumping();
+}
+
+void AProjectSimulationCharacter::OnCrouch()
+{
+	AdvancedMovement->OnCrouch();
+}
+
+void AProjectSimulationCharacter::OnCrouchRelease()
+{
+	AdvancedMovement->OnCrouchRelease();
+}
+
+void AProjectSimulationCharacter::OnSprint()
+{
+	AdvancedMovement->OnSprint();
+}
+
+void AProjectSimulationCharacter::OnSprintRelease()
+{
+	AdvancedMovement->OnSprintRelease();
 }
 
 void AProjectSimulationCharacter::MoveForward(float Value)
@@ -295,18 +323,30 @@ void AProjectSimulationCharacter::PlayFootstep()
 
 		if (FootStepSounds.IsValidIndex(id))
 		{
-			USoundBase* chosenSound = FootStepSounds[id];
-			if (chosenSound != NULL)
+			USoundBase* chosenRunSound = RunStepSounds[id];
+			USoundBase* chosenWalkSound = FootStepSounds[id];
+
+			if (chosenWalkSound != NULL && chosenRunSound != NULL)
 			{
-				UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
 				isPlayingFootstep = true;
-				FTimerDelegate TimerDel;
-				FTimerHandle TimerHandle;
 
-				TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+				if (AdvancedMovement->GetIsSprinting())
+				{
 
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenSound->Duration), false);
-				TimerHandle.Invalidate();
+					UGameplayStatics::PlaySoundAtLocation(this, chosenRunSound, GetActorLocation());
+					FTimerDelegate TimerDel;
+					FTimerHandle TimerHandle;
+					TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenRunSound->Duration) / 2, false);
+				}
+				else
+				{
+					UGameplayStatics::PlaySoundAtLocation(this, chosenWalkSound, GetActorLocation());
+					FTimerDelegate TimerDel;
+					FTimerHandle TimerHandle;
+					TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenWalkSound->Duration), false);
+				}
 			}
 		}
 	}
