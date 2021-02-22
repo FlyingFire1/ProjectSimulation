@@ -43,7 +43,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetGrappleCable(class UCableComponent* inCable);
 
-
+	//Getters
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetIsWallRunning() const { return pOnWall; };
 
@@ -59,11 +59,20 @@ public:
 	UFUNCTION()
 	void OnCrouchRelease();
 
-
+	//Getters
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsSprinting() const { return pIsSprinting; };
 	/*********************** Slide ***********************/
 
 	UFUNCTION()
 	void PlaySlide();
+
+	//Getters
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsSlidingDown() const { return pIsSlidingDown; };
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsSliding() const { return pSlideTime > 0.f; };
 
 	/*********************** Sprint **********************/
 	UFUNCTION()
@@ -128,6 +137,7 @@ private:
 	/*********************** Sprint **********************/
 	float pWalkSpeed;
 	float pRunSpeed;
+	bool pIsSprinting = false;
 
 	/*********************** Slide ***********************/
 	FVector pPreviousFrameLoc = FVector(0,0,100000.f);

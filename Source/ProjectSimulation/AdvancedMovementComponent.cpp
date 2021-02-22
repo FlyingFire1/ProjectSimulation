@@ -61,7 +61,7 @@ void UAdvancedMovementComponent::DoJump()
 			//Get forward vector of rotation
 			FVector temp = rot.Vector();
 			temp *= 5000.f;
-			temp.Z = 200.f;
+			temp.Z = 420.f;
 			Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, true, true);
 			pIsSlidingDown = false;
 		}
@@ -416,11 +416,13 @@ void UAdvancedMovementComponent::PlaySlide()
 
 void UAdvancedMovementComponent::OnSprint()
 {
+	pIsSprinting = true;
 	pOCM->MaxWalkSpeed = pRunSpeed;
 }
 
 void UAdvancedMovementComponent::OnSprintRelease()
 {
+	pIsSprinting = false;
 	pOCM->MaxWalkSpeed = pWalkSpeed;
 }
 // Base Functions ***********************************************************************************

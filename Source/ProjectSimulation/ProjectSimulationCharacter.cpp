@@ -323,18 +323,30 @@ void AProjectSimulationCharacter::PlayFootstep()
 
 		if (FootStepSounds.IsValidIndex(id))
 		{
-			USoundBase* chosenSound = FootStepSounds[id];
-			if (chosenSound != NULL)
+			USoundBase* chosenRunSound = RunStepSounds[id];
+			USoundBase* chosenWalkSound = FootStepSounds[id];
+
+			if (chosenWalkSound != NULL && chosenRunSound != NULL)
 			{
-				UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
 				isPlayingFootstep = true;
-				FTimerDelegate TimerDel;
-				FTimerHandle TimerHandle;
 
-				TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+				if (AdvancedMovement->GetIsSprinting())
+				{
 
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenSound->Duration), false);
-				TimerHandle.Invalidate();
+					UGameplayStatics::PlaySoundAtLocation(this, chosenRunSound, GetActorLocation());
+					FTimerDelegate TimerDel;
+					FTimerHandle TimerHandle;
+					TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenRunSound->Duration) / 2, false);
+				}
+				else
+				{
+					UGameplayStatics::PlaySoundAtLocation(this, chosenWalkSound, GetActorLocation());
+					FTimerDelegate TimerDel;
+					FTimerHandle TimerHandle;
+					TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenWalkSound->Duration), false);
+				}
 			}
 		}
 	}

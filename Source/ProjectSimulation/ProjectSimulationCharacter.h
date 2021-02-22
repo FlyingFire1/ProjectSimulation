@@ -88,6 +88,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	TArray<class USoundBase*> FootStepSounds;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> RunStepSounds;
+
 	/** Sounds that are used for taunts */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	TArray<class USoundBase*> TauntSounds;
