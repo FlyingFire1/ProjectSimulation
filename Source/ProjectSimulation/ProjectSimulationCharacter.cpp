@@ -202,8 +202,31 @@ void AProjectSimulationCharacter::OnGrappleRelease()
 
 void AProjectSimulationCharacter::OnFire()
 {
-	//Attack using melee component;
-	MeleeCombat->Attack();
+	if (canSwing)
+	{
+		swingCount++;
+		if (swingCount >= SwingAnims.Num())
+			swingCount = 0;
+
+		int32 id = swingCount;
+
+		if (SwingAnims.IsValidIndex(id))
+		{
+
+			Mesh1P->GetAnimInstance()->Montage_Play(SwingAnims[id], 1.f);
+		}
+
+		//Attack using melee component;
+		MeleeCombat->Attack();
+
+		canSwing = false;
+
+		FTimerDelegate TimerDel;
+		FTimerHandle TimerHandle;
+
+		TimerDel.BindUFunction(this, FName("SwingWait"));
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, SwingSpeed, false);
+	}
 }
 
 void AProjectSimulationCharacter::OnJump()
@@ -285,9 +308,15 @@ void AProjectSimulationCharacter::LookUpAtRate(float Rate)
 // Manipulation Functions
 
 /*Useful function for timers*/
-void AProjectSimulationCharacter::BoolWait(bool& inBool)
+void AProjectSimulationCharacter::FootstepWait()
 {
 	isPlayingFootstep = false;
+}
+
+/*Useful function for timers*/
+void AProjectSimulationCharacter::SwingWait()
+{
+	canSwing = true;
 }
 
 
@@ -321,7 +350,7 @@ void AProjectSimulationCharacter::PlayFootstep()
 
 		int32 id = footstepCount;
 
-		if (FootStepSounds.IsValidIndex(id))
+		if (FootStepSounds.IsValidIndex(id) && RunStepSounds.IsValidIndex(id))
 		{
 			USoundBase* chosenRunSound = RunStepSounds[id];
 			USoundBase* chosenWalkSound = FootStepSounds[id];
@@ -336,7 +365,7 @@ void AProjectSimulationCharacter::PlayFootstep()
 					UGameplayStatics::PlaySoundAtLocation(this, chosenRunSound, GetActorLocation());
 					FTimerDelegate TimerDel;
 					FTimerHandle TimerHandle;
-					TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+					TimerDel.BindUFunction(this, FName("FootstepWait"));
 					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenRunSound->Duration) / 2, false);
 				}
 				else
@@ -344,7 +373,7 @@ void AProjectSimulationCharacter::PlayFootstep()
 					UGameplayStatics::PlaySoundAtLocation(this, chosenWalkSound, GetActorLocation());
 					FTimerDelegate TimerDel;
 					FTimerHandle TimerHandle;
-					TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+					TimerDel.BindUFunction(this, FName("FootstepWait"));
 					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenWalkSound->Duration), false);
 				}
 			}
