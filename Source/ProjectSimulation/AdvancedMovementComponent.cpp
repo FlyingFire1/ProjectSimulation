@@ -61,7 +61,7 @@ void UAdvancedMovementComponent::DoJump()
 			//Get forward vector of rotation
 			FVector temp = rot.Vector();
 			temp *= 5000.f;
-			temp.Z = 200.f;
+			temp.Z = 420.f;
 			Cast<ACharacter>(GetOwner())->LaunchCharacter(temp, true, true);
 			pIsSlidingDown = false;
 		}
@@ -341,6 +341,31 @@ void UAdvancedMovementComponent::TickTimeline()
 
 	if (pOnWall)
 	{
+		pWRTimer -= GetWorld()->GetDeltaSeconds();
+		if (pWRTimer <= 0)
+		{
+			AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
+			
+			
+			pFootstepCount++;
+			if (pFootstepCount > player->RunStepSounds.Num())
+				pFootstepCount = 0;
+			
+			//Simple lerp
+			pWRTimer = 0.05f + 0.265f * (1 - (player->GetVelocity().Size() / 2500.f));
+			if (pWRTimer < 0.05f)
+				pWRTimer = 0.05f;
+			int32 id = pFootstepCount;
+
+				if (player->RunStepSounds.IsValidIndex(id))
+				{
+					USoundBase* chosenRunSound = player->RunStepSounds[id];
+					UGameplayStatics::PlaySoundAtLocation(this, chosenRunSound, player->GetActorLocation(), 0.25f, 0.5f);
+				}
+			
+		}
+	
+		
 		//Constrain to the wall and force to run across it
 		pOCM->SetPlaneConstraintNormal(FVector(0.f, 0.f, 1.f));
 		pOCM->GravityScale = 0.f;
@@ -416,11 +441,13 @@ void UAdvancedMovementComponent::PlaySlide()
 
 void UAdvancedMovementComponent::OnSprint()
 {
+	pIsSprinting = true;
 	pOCM->MaxWalkSpeed = pRunSpeed;
 }
 
 void UAdvancedMovementComponent::OnSprintRelease()
 {
+	pIsSprinting = false;
 	pOCM->MaxWalkSpeed = pWalkSpeed;
 }
 // Base Functions ***********************************************************************************
@@ -453,18 +480,18 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 		TickTimeline();
 
 	//Thanks Rama :)
-	UWorld* const World = GEngine->GetWorldFromContextObject(GetOwner(), EGetWorldErrorMode::ReturnNull);
+	UWorld*  World = GetOwner()->GetWorld();
 
 	//Get all Grappleables in world
 	for (TActorIterator<AGrappleable> Itr(World); Itr; ++Itr)
 	{
 		//Actor is rendered
-		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() <= 0.01f)
+		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() <= 0.05f)
 		{
 			CurrentlyRenderedGrapplePoints.Add(*Itr);
 		}
 		//Actor is unrendered
-		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() > 0.01f)
+		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() > 0.05f)
 		{
 			CurrentlyRenderedGrapplePoints.Remove(*Itr);
 		}

@@ -80,13 +80,16 @@ public:
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	class UAnimMontage* FireAnimation;
+	TArray<class UAnimMontage*> SwingAnims;
 
 	//Sounds 
 
 	/** Sounds that are used for footsteps */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	TArray<class USoundBase*> FootStepSounds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> RunStepSounds;
 
 	/** Sounds that are used for taunts */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
@@ -102,9 +105,14 @@ public:
 	
 	/** Sounds that are used for Vaulting */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
-	TArray<class USoundBase*> VaultSounds;
+	TArray<class USoundBase*> VaultSounds;	
 
+	/** Sounds that are used for Swinging */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> SwingingSounds;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee")
+	float SwingSpeed = 0.15f;
 protected:
 	
 	/** Fires a projectile. */
@@ -174,7 +182,10 @@ protected:
 private:
 	/*******Sound*******/
 	UFUNCTION()
-	void BoolWait(bool& inBool);
+	void FootstepWait();	
+	
+	UFUNCTION()
+	void SwingWait();
 
 	UFUNCTION()
 	void PlayFootstep();
@@ -193,7 +204,9 @@ private:
 
 
 	bool isPlayingFootstep = false;
+	bool canSwing = true;
 	int32 footstepCount = 0;
+	int32 swingCount = 0;
 	/*******************/
 
 	FRotator pOGCamera;
