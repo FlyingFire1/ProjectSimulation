@@ -112,7 +112,7 @@ public:
 	TArray<class USoundBase*> SwingingSounds;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee")
-	float SwingSpeed = 0.25f;
+	float SwingSpeed = 0.15f;
 protected:
 	
 	/** Fires a projectile. */
