@@ -341,6 +341,31 @@ void UAdvancedMovementComponent::TickTimeline()
 
 	if (pOnWall)
 	{
+		pWRTimer -= GetWorld()->GetDeltaSeconds();
+		if (pWRTimer <= 0)
+		{
+			AProjectSimulationCharacter* player = Cast<AProjectSimulationCharacter>(GetOwner());
+			
+			
+			pFootstepCount++;
+			if (pFootstepCount > player->RunStepSounds.Num())
+				pFootstepCount = 0;
+			
+			//Simple lerp
+			pWRTimer = 0.05f + 0.265f * (1 - (player->GetVelocity().Size() / 2500.f));
+			if (pWRTimer < 0.05f)
+				pWRTimer = 0.05f;
+			int32 id = pFootstepCount;
+
+				if (player->RunStepSounds.IsValidIndex(id))
+				{
+					USoundBase* chosenRunSound = player->RunStepSounds[id];
+					UGameplayStatics::PlaySoundAtLocation(this, chosenRunSound, player->GetActorLocation(), 0.25f, 0.5f);
+				}
+			
+		}
+	
+		
 		//Constrain to the wall and force to run across it
 		pOCM->SetPlaneConstraintNormal(FVector(0.f, 0.f, 1.f));
 		pOCM->GravityScale = 0.f;

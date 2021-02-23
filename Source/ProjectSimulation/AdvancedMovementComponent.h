@@ -133,7 +133,9 @@ private:
 	class UBoxComponent* WallRunBoxLComponent;
 	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxRComponent;	
-
+	bool pCanPlayWRSound;
+	float pWRTimer = 0.1f;
+	int32 pFootstepCount = 0;
 	/*********************** Sprint **********************/
 	float pWalkSpeed;
 	float pRunSpeed;
