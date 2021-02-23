@@ -216,9 +216,6 @@ void AProjectSimulationCharacter::OnFire()
 			Mesh1P->GetAnimInstance()->Montage_Play(SwingAnims[id], 1.f);
 		}
 
-		//Attack using melee component;
-		MeleeCombat->Attack();
-
 		canSwing = false;
 
 		FTimerDelegate TimerDel;
@@ -316,7 +313,10 @@ void AProjectSimulationCharacter::FootstepWait()
 /*Useful function for timers*/
 void AProjectSimulationCharacter::SwingWait()
 {
+	//Attack using melee component;
+	MeleeCombat->Attack();
 	canSwing = true;
+
 }
 
 
