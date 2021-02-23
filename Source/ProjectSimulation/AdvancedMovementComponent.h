@@ -29,6 +29,10 @@ public:
 	UFUNCTION()
 	void JumpReset();
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsDoubleJumping() const { return isDoubleJumping; };
+
+
 
 	/*********************** Wall Run ***********************/
 	//Set box for wall run logic
@@ -39,9 +43,43 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetGrappleCable(class UCableComponent* inCable);
 
+	//Getters
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsWallRunning() const { return pOnWall; };
+
 	//The base wall run speed
 	UPROPERTY(EditAnywhere, Category = WallRun)
 	float WallRunSpeed = 2000.f;
+
+	/*********************** Crouch ***********************/
+
+	UFUNCTION()
+	void OnCrouch();
+
+	UFUNCTION()
+	void OnCrouchRelease();
+
+	//Getters
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsSprinting() const { return pIsSprinting; };
+	/*********************** Slide ***********************/
+
+	UFUNCTION()
+	void PlaySlide();
+
+	//Getters
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsSlidingDown() const { return pIsSlidingDown; };
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsSliding() const { return pSlideTime > 0.f; };
+
+	/*********************** Sprint **********************/
+	UFUNCTION()
+	void OnSprint();
+
+	UFUNCTION()
+	void OnSprintRelease();
 
 	/*********************** Grapple ***********************/
 	UFUNCTION()
@@ -69,20 +107,22 @@ protected:
 	void OnWallRunBoxHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 	UFUNCTION()
 	void TickTimeline();
+
 	/***********************Grapple Hook***********************/
 	UFUNCTION()
 	void GrappleReset();
 private:
 
-	TArray<class AGrappleable*> CurrentlyRenderedGrapplePoints;
-
+	TArray<class AGrappleable*> CurrentlyRenderedGrapplePoints; //Array of Currently rendered grapple points
+	class UCharacterMovementComponent* pOCM; //Owner Character Movement
 	/***********************Double Jump***********************/
 	int pDoCounter = 0;
 	/*Jump up in air*/
 	void DoJump();
 	/*Jump and lunge based on camera direction*/
 	void DoLunge(bool resetMomementom);
-
+	/*For Anims*/
+	bool isDoubleJumping = false;
 	/***********************Wallrunning***********************/
 	bool isPlaying = false;
 	FVector pPlayerDirection;
@@ -93,6 +133,19 @@ private:
 	class UBoxComponent* WallRunBoxLComponent;
 	UPROPERTY(Category = "WallRun", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WallRunBoxRComponent;	
+
+	/*********************** Sprint **********************/
+	float pWalkSpeed;
+	float pRunSpeed;
+	bool pIsSprinting = false;
+
+	/*********************** Slide ***********************/
+	FVector pPreviousFrameLoc = FVector(0,0,100000.f);
+	FVector pSlideDir;
+	float pSlideTime = 0.f;
+	bool pWaitCrouch = false;
+	bool pIsSlidingDown = false;
+
 	/***********************Grapple Hook***********************/
 	UPROPERTY(Category = "Grapple", EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UCableComponent* GrappleCableComponent;
