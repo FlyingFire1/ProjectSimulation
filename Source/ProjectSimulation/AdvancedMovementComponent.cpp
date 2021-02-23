@@ -455,18 +455,18 @@ void UAdvancedMovementComponent::TickComponent(float DeltaTime, ELevelTick TickT
 		TickTimeline();
 
 	//Thanks Rama :)
-	UWorld* const World = GEngine->GetWorldFromContextObject(GetOwner(), EGetWorldErrorMode::ReturnNull);
+	UWorld*  World = GetOwner()->GetWorld();
 
 	//Get all Grappleables in world
 	for (TActorIterator<AGrappleable> Itr(World); Itr; ++Itr)
 	{
 		//Actor is rendered
-		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() <= 0.01f)
+		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() <= 0.05f)
 		{
 			CurrentlyRenderedGrapplePoints.Add(*Itr);
 		}
 		//Actor is unrendered
-		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() > 0.01f)
+		if (World->GetTimeSeconds() - Itr->GetLastRenderTime() > 0.05f)
 		{
 			CurrentlyRenderedGrapplePoints.Remove(*Itr);
 		}
