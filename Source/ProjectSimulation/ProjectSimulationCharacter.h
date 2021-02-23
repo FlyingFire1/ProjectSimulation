@@ -105,7 +105,11 @@ public:
 	
 	/** Sounds that are used for Vaulting */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
-	TArray<class USoundBase*> VaultSounds;
+	TArray<class USoundBase*> VaultSounds;	
+
+	/** Sounds that are used for Swinging */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<class USoundBase*> SwingingSounds;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee")
 	float SwingSpeed = 0.25f;

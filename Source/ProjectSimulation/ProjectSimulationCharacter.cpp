@@ -211,11 +211,10 @@ void AProjectSimulationCharacter::OnFire()
 		int32 id = swingCount;
 
 		if (SwingAnims.IsValidIndex(id))
-		{
-
 			Mesh1P->GetAnimInstance()->Montage_Play(SwingAnims[id], 1.f);
-		}
-
+		if (SwingingSounds.IsValidIndex(id))
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), SwingingSounds[id], GetActorLocation());
+		
 		canSwing = false;
 
 		FTimerDelegate TimerDel;
