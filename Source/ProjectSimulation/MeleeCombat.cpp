@@ -70,7 +70,7 @@ void UMeleeCombat::Attack()
 
 			TimerDel.BindUFunction(GetOwner(), FName("TauntWait"));
 
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 4.f, true);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 3.f, false);
 		}
 
 
