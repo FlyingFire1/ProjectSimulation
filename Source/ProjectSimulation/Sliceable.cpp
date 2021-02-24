@@ -27,9 +27,7 @@ ASliceable::ASliceable()
 	pm = CreateDefaultSubobject <UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
 	/*RootComponent->SetRelativeLocation(FVector(0,0,0));*/
-	mesh->SetupAttachment(RootComponent);
 	mesh->SetVisibility(false);
-	pm->SetupAttachment(RootComponent);
 	pm->BodyInstance.SetCollisionProfileName("BlockAll");
 	pm->SetSimulatePhysics(true);
 	pm->bUseComplexAsSimpleCollision = false;
