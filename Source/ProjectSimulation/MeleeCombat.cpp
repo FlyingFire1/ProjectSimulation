@@ -5,6 +5,8 @@
 #include "Sliceable.h"
 #include "Engine.h"
 #include "GameFramework/Actor.h" 
+#include "GameFramework/Character.h"
+#include "ProjectSimulationCharacter.h"
 #include "KismetProceduralMeshLibrary.h"
 
 // Sets default values for this component's properties
@@ -48,10 +50,34 @@ void UMeleeCombat::Attack()
 	for (AActor* m : ovlAct)
 		temp.AddUnique(m);
 	
-
+	bool hasEnemy = false;
 	//For each actor in temp, call receive damage.
 	for (AActor* m : temp)
+	{
 		m->ReceiveAnyDamage(damageAmount, dt, GetOwner()->GetInstigatorController(), GetOwner());
+		if(m->IsA(ACharacter::StaticClass()))
+			hasEnemy = true;
+	}
+
+	if (hasEnemy)
+	{
+		if (FMath::RandRange(0.f, 10.f) > 6.f)
+		{
+			Cast<AProjectSimulationCharacter>(GetOwner())->PlayTauntVoiceline();
+			//Code for timer
+			FTimerDelegate TimerDel;
+			FTimerHandle TimerHandle;
+
+			TimerDel.BindUFunction(GetOwner(), FName("TauntWait"));
+
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 4.f, true);
+		}
+
+
+	}
+
+
+	
 	
 
 	//For each proc mesh, split in half.

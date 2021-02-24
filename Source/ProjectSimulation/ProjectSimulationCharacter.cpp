@@ -331,6 +331,11 @@ void AProjectSimulationCharacter::SwingWait()
 
 }
 
+void AProjectSimulationCharacter::TauntWait()
+{
+	isPlayingTaunt = false;
+}
+
 
 /*Allows rotation of camera*/
 void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, bool usePitch, bool useYaw)
@@ -399,10 +404,15 @@ void AProjectSimulationCharacter::PlayTauntVoiceline()
 	int32 id = FMath::RandRange(0, (TauntSounds.Num()-1));
 	if (TauntSounds.IsValidIndex(id))
 	{
-		USoundBase* chosenSound = TauntSounds[id];
-		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+		if (!isPlayingTaunt)
+		{
+			isPlayingTaunt = true;
+			USoundBase* chosenSound = TauntSounds[id];
+			UGameplayStatics::PlaySound2D(this, chosenSound);
+		}
 	}
 }
+
 
 /*Plays a random pain sound*/
 void AProjectSimulationCharacter::PlayPainVoiceline()

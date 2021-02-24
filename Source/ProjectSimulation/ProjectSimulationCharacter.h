@@ -85,6 +85,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float Health = 100.f;
 
+	UFUNCTION()
+	void PlayTauntVoiceline();
+
+	UFUNCTION()
+	void PlayPainVoiceline();
+
 	//Sounds 
 
 	/** Sounds that are used for footsteps */
@@ -191,13 +197,10 @@ private:
 	void SwingWait();
 
 	UFUNCTION()
+	void TauntWait();
+
+	UFUNCTION()
 	void PlayFootstep();
-
-	UFUNCTION()
-	void PlayTauntVoiceline();
-
-	UFUNCTION()
-	void PlayPainVoiceline();	
 
 	UFUNCTION()
 	void PlayVaultVoiceline();	
@@ -208,6 +211,7 @@ private:
 
 	bool isPlayingFootstep = false;
 	bool canSwing = true;
+	bool isPlayingTaunt = false;
 	int32 footstepCount = 0;
 	int32 swingCount = 0;
 	/*******************/
