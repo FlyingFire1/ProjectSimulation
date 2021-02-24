@@ -3,7 +3,7 @@
   <ItemGroup>
     <None Include="..\..\ProjectSimulation.uproject" />
     <Filter Include="Source">
-      <UniqueIdentifier>{854C6233-5EB7-46A9-9AAB-AA1BAD371E16}</UniqueIdentifier>
+      <UniqueIdentifier>{EA61AF07-4B13-4D50-A2A8-8E77C2B2DF60}</UniqueIdentifier>
     </Filter>
     <None Include="..\..\Source\ProjectSimulation.Target.cs">
       <Filter>Source</Filter>
@@ -14,7 +14,7 @@
     <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
     <Filter Include="Config">
-      <UniqueIdentifier>{53D5C24F-02F5-4A78-8732-3600EF09FB43}</UniqueIdentifier>
+      <UniqueIdentifier>{EB082588-AEB5-489D-9235-E09199A5AFEE}</UniqueIdentifier>
     </Filter>
     <None Include="..\..\Config\DefaultEditor.ini">
       <Filter>Config</Filter>
@@ -32,7 +32,7 @@
       <Filter>Config</Filter>
     </None>
     <Filter Include="Source\ProjectSimulation">
-      <UniqueIdentifier>{7BCD76EB-AE0F-4E2C-9A90-2B2D54E7260F}</UniqueIdentifier>
+      <UniqueIdentifier>{9F2A4450-3A76-43F5-ABB7-6A992FEFCE42}</UniqueIdentifier>
     </Filter>
     <ClCompile Include="..\..\Source\ProjectSimulation\AdvancedComponent.cpp">
       <Filter>Source\ProjectSimulation</Filter>
@@ -44,18 +44,6 @@
       <Filter>Source\ProjectSimulation</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\ProjectSimulation\AdvancedMovementComponent.h">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\Source\ProjectSimulation\Checkpoint.cpp">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\Source\ProjectSimulation\Checkpoint.h">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\Source\ProjectSimulation\CheckpointManager.cpp">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\Source\ProjectSimulation\CheckpointManager.h">
       <Filter>Source\ProjectSimulation</Filter>
     </ClInclude>
     <ClCompile Include="..\..\Source\ProjectSimulation\DamageType_Melee.cpp">
