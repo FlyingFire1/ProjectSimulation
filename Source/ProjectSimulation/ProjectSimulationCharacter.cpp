@@ -15,6 +15,7 @@
 #include "AdvancedMovementComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "CableComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -73,8 +74,10 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	MeleeCombat->damageAmount = 20.f;
 	MeleeCombat->SetBox(MeleeBox);
 
+	//Advanced Movement Setup //
 	AdvancedMovement = CreateDefaultSubobject<UAdvancedMovementComponent>(TEXT("AdvancedMovement"));
 
+	//Wall Run Boxes
 	WallRunBoxL = CreateDefaultSubobject<UBoxComponent>(TEXT("WallRunBoxL"));
 	WallRunBoxL->SetupAttachment(GetCapsuleComponent());
 	WallRunBoxL->SetGenerateOverlapEvents(true);
@@ -87,7 +90,11 @@ AProjectSimulationCharacter::AProjectSimulationCharacter()
 	WallRunBoxR->SetCollisionProfileName("OverlapAll");
 	AdvancedMovement->SetWallRunBoxR(WallRunBoxR);
 
+	//Grapple Cable
+	GrappleCable = CreateDefaultSubobject<UCableComponent>(TEXT("Grapple Cable"));
+	AdvancedMovement->SetGrappleCable(GrappleCable);
 
+	// Timeline Setup //
 	const ConstructorHelpers::FObjectFinder<UCurveFloat> Curve(TEXT("CurveFloat'/Game/FirstPersonCPP/Blueprints/LinCurve.LinCurve'"));
 	if (Curve.Object) {
 		fCurve = Curve.Object;
@@ -116,22 +123,38 @@ void AProjectSimulationCharacter::BeginPlay()
 	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 4.f, true);
 
 
-	ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
+
+	//if (WidgetHUDClass)
+	//{
+
+	//	HUDWidget = CreateWidget<UHUDWidget>(GetWorld(), WidgetHUDClass);
+	//	/** Make sure widget was created */
+	//	if (HUDWidget)
+	//	{
+	//		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Some debug message!"));
+	//		/** Add it to the viewport */
+	//		HUDWidget->AddToViewport();
+	//	}
+	//}
+		ScoreTimeline->AddInterpFloat(fCurve, InterpFunction, FName{ TEXT("Float") });
 }
 
 
 void AProjectSimulationCharacter::TimelineFloatReturn(float val)
 {
-	float roll = pUseRoll ? FMath::Lerp(pOGCamera.Roll, pCamera.Roll, val) : Controller->GetControlRotation().Roll;
-	float yaw = pUseYaw ? Controller->GetControlRotation().Yaw : Controller->GetControlRotation().Yaw;
-	float pitch = pUsePitch ? FMath::Lerp(pOGCamera.Pitch, pCamera.Pitch, val) : Controller->GetControlRotation().Pitch;
-	FRotator temp;
-	temp.Roll = roll;
-	temp.Yaw = yaw;
-	temp.Pitch = pitch;
-	Controller->ClientSetRotation(temp);
-}
 
+	if (!this->IsPendingKillPending() )
+	{
+		float roll = pUseRoll ? FMath::Lerp(pOGCamera.Roll, pCamera.Roll, val) : Controller->GetControlRotation().Roll;
+		float yaw = pUseYaw ? Controller->GetControlRotation().Yaw : Controller->GetControlRotation().Yaw;
+		float pitch = pUsePitch ? FMath::Lerp(pOGCamera.Pitch, pCamera.Pitch, val) : Controller->GetControlRotation().Pitch;
+		FRotator temp;
+		temp.Roll = roll;
+		temp.Yaw = yaw;
+		temp.Pitch = pitch;
+		Controller->ClientSetRotation(temp);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -152,6 +175,14 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 	// Bind Grapple event
 	PlayerInputComponent->BindAction("Grapple", IE_Pressed, this, &AProjectSimulationCharacter::OnGrapple);
 	PlayerInputComponent->BindAction("Grapple", IE_Released, this, &AProjectSimulationCharacter::OnGrappleRelease);
+
+	//Bind Crouch event
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AProjectSimulationCharacter::OnCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AProjectSimulationCharacter::OnCrouchRelease);
+
+	//Bind Sprint event
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AProjectSimulationCharacter::OnSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AProjectSimulationCharacter::OnSprintRelease);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AProjectSimulationCharacter::MoveForward);
@@ -184,8 +215,27 @@ void AProjectSimulationCharacter::OnGrappleRelease()
 
 void AProjectSimulationCharacter::OnFire()
 {
-	//Attack using melee component;
-	MeleeCombat->Attack();
+	if (canSwing)
+	{
+		swingCount++;
+		if (swingCount >= SwingAnims.Num())
+			swingCount = 0;
+
+		int32 id = swingCount;
+
+		if (SwingAnims.IsValidIndex(id))
+			Mesh1P->GetAnimInstance()->Montage_Play(SwingAnims[id], 1.f);
+		if (SwingingSounds.IsValidIndex(id))
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), SwingingSounds[id], GetActorLocation());
+		
+		canSwing = false;
+
+		FTimerDelegate TimerDel;
+		FTimerHandle TimerHandle;
+
+		TimerDel.BindUFunction(this, FName("SwingWait"));
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, SwingSpeed, false);
+	}
 }
 
 void AProjectSimulationCharacter::OnJump()
@@ -196,6 +246,26 @@ void AProjectSimulationCharacter::OnJump()
 void AProjectSimulationCharacter::OnJumpRelease()
 {
 	StopJumping();
+}
+
+void AProjectSimulationCharacter::OnCrouch()
+{
+	AdvancedMovement->OnCrouch();
+}
+
+void AProjectSimulationCharacter::OnCrouchRelease()
+{
+	AdvancedMovement->OnCrouchRelease();
+}
+
+void AProjectSimulationCharacter::OnSprint()
+{
+	AdvancedMovement->OnSprint();
+}
+
+void AProjectSimulationCharacter::OnSprintRelease()
+{
+	AdvancedMovement->OnSprintRelease();
 }
 
 void AProjectSimulationCharacter::MoveForward(float Value)
@@ -247,9 +317,18 @@ void AProjectSimulationCharacter::LookUpAtRate(float Rate)
 // Manipulation Functions
 
 /*Useful function for timers*/
-void AProjectSimulationCharacter::BoolWait(bool& inBool)
+void AProjectSimulationCharacter::FootstepWait()
 {
 	isPlayingFootstep = false;
+}
+
+/*Useful function for timers*/
+void AProjectSimulationCharacter::SwingWait()
+{
+	//Attack using melee component;
+	MeleeCombat->Attack();
+	canSwing = true;
+
 }
 
 
@@ -283,20 +362,32 @@ void AProjectSimulationCharacter::PlayFootstep()
 
 		int32 id = footstepCount;
 
-		if (FootStepSounds.IsValidIndex(id))
+		if (FootStepSounds.IsValidIndex(id) && RunStepSounds.IsValidIndex(id))
 		{
-			USoundBase* chosenSound = FootStepSounds[id];
-			if (chosenSound != NULL)
+			USoundBase* chosenRunSound = RunStepSounds[id];
+			USoundBase* chosenWalkSound = FootStepSounds[id];
+
+			if (chosenWalkSound != NULL && chosenRunSound != NULL)
 			{
-				UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
 				isPlayingFootstep = true;
-				FTimerDelegate TimerDel;
-				FTimerHandle TimerHandle;
 
-				TimerDel.BindUFunction(this, FName("BoolWait"), isPlayingFootstep);
+				if (AdvancedMovement->GetIsSprinting())
+				{
 
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenSound->Duration), false);
-				TimerHandle.Invalidate();
+					UGameplayStatics::PlaySoundAtLocation(this, chosenRunSound, GetActorLocation());
+					FTimerDelegate TimerDel;
+					FTimerHandle TimerHandle;
+					TimerDel.BindUFunction(this, FName("FootstepWait"));
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenRunSound->Duration) / 2, false);
+				}
+				else
+				{
+					UGameplayStatics::PlaySoundAtLocation(this, chosenWalkSound, GetActorLocation());
+					FTimerDelegate TimerDel;
+					FTimerHandle TimerHandle;
+					TimerDel.BindUFunction(this, FName("FootstepWait"));
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, (chosenWalkSound->Duration), false);
+				}
 			}
 		}
 	}
@@ -305,7 +396,7 @@ void AProjectSimulationCharacter::PlayFootstep()
 /*Plays a random taunt sound*/
 void AProjectSimulationCharacter::PlayTauntVoiceline()
 {
-	int32 id = FMath::RandRange(0, TauntSounds.Num());
+	int32 id = FMath::RandRange(0, (TauntSounds.Num()-1));
 	if (TauntSounds.IsValidIndex(id))
 	{
 		USoundBase* chosenSound = TauntSounds[id];
@@ -316,10 +407,30 @@ void AProjectSimulationCharacter::PlayTauntVoiceline()
 /*Plays a random pain sound*/
 void AProjectSimulationCharacter::PlayPainVoiceline()
 {
-	int32 id = FMath::RandRange(0, PainSounds.Num());
+	int32 id = FMath::RandRange(0, (PainSounds.Num()-1));
 	if (PainSounds.IsValidIndex(id))
 	{
 		USoundBase* chosenSound = PainSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+void AProjectSimulationCharacter::PlayVaultVoiceline()
+{
+	int32 id = FMath::RandRange(0, (JumpSounds.Num()-1));
+	if (JumpSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = JumpSounds[id];
+		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
+	}
+}
+
+void AProjectSimulationCharacter::PlayJumpVoiceline()
+{
+	int32 id = FMath::RandRange(0, (VaultSounds.Num()-1));
+	if (VaultSounds.IsValidIndex(id))
+	{
+		USoundBase* chosenSound = VaultSounds[id];
 		UGameplayStatics::PlaySoundAtLocation(this, chosenSound, GetActorLocation());
 	}
 }
