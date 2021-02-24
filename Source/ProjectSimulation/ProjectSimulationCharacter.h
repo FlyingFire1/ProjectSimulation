@@ -82,6 +82,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	TArray<class UAnimMontage*> SwingAnims;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float Health = 100.f;
+
 	//Sounds 
 
 	/** Sounds that are used for footsteps */
