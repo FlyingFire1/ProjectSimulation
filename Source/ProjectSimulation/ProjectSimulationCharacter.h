@@ -7,6 +7,9 @@
 #include "Components/TimelineComponent.h"
 #include "ProjectSimulationCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMenuMoveDelegate, bool, isDown);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMenuSelectDelegate);
+
 class UInputComponent;
 
 UCLASS(config=Game)
@@ -53,8 +56,16 @@ class AProjectSimulationCharacter : public ACharacter
 
 	UPROPERTY(Category = "AdvMovement", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UAdvancedMovementComponent* AdvancedMovement;
+
+	UPROPERTY(Category = "Pause", EditDefaultsOnly)
+	TSubclassOf<class UUserWidget> PauseMenuWidget;
 public:
 	AProjectSimulationCharacter();
+
+	UPROPERTY(BlueprintAssignable, Category = "Delegate")
+	FMenuMoveDelegate OnMenuMove;
+	UPROPERTY(BlueprintAssignable, Category = "Delegate")
+	FMenuSelectDelegate OnMenuSelect;
 
 	UFUNCTION()
 	void RotateCamera(FRotator rotation, bool useRoll = true, bool usePitch = true, bool useYaw = true);
@@ -136,6 +147,9 @@ protected:
 	// Called on release of Sprint
 	void OnSprintRelease();
 
+	// Called when pausing
+	void Pause();
+
 	// Called upon hitting the ground, virtual function
 	virtual void Landed(const FHitResult& Hit) override;
 
@@ -214,6 +228,10 @@ private:
 	bool pUseRoll;
 	bool pUsePitch;
 	bool pUseYaw;
+
+	//HUD/UI
+	UUserWidget* pPauseMenu;
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;

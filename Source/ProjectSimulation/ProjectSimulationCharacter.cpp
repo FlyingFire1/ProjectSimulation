@@ -15,6 +15,7 @@
 #include "AdvancedMovementComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "CableComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
@@ -166,7 +167,7 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 	check(PlayerInputComponent);
 
 	// Bind jump events
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AProjectSimulationCharacter::OnJump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AProjectSimulationCharacter::OnJump).bExecuteWhenPaused = true;
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AProjectSimulationCharacter::OnJumpRelease);
 
 	// Bind fire event
@@ -184,8 +185,11 @@ void AProjectSimulationCharacter::SetupPlayerInputComponent(class UInputComponen
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AProjectSimulationCharacter::OnSprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AProjectSimulationCharacter::OnSprintRelease);
 
+	//Bind Pause event
+	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AProjectSimulationCharacter::Pause).bExecuteWhenPaused = true;
+
 	// Bind movement events
-	PlayerInputComponent->BindAxis("MoveForward", this, &AProjectSimulationCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AProjectSimulationCharacter::MoveForward).bExecuteWhenPaused = true;
 	PlayerInputComponent->BindAxis("MoveRight", this, &AProjectSimulationCharacter::MoveRight);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
@@ -240,7 +244,12 @@ void AProjectSimulationCharacter::OnFire()
 
 void AProjectSimulationCharacter::OnJump()
 {
-	AdvancedMovement->Jump();
+	if (Cast<APlayerController>(GetController())->IsPaused())
+	{
+		OnMenuSelect.Broadcast();
+	}
+	else
+		AdvancedMovement->Jump();
 }
 
 void AProjectSimulationCharacter::OnJumpRelease()
@@ -268,17 +277,58 @@ void AProjectSimulationCharacter::OnSprintRelease()
 	AdvancedMovement->OnSprintRelease();
 }
 
+void AProjectSimulationCharacter::Pause()
+{
+	APlayerController* pc = Cast<APlayerController>(GetController());
+	if (!(pc->IsPaused()))
+	{
+		pc->SetPause(true);
+		if (PauseMenuWidget)
+		{
+			pPauseMenu = CreateWidget<UUserWidget>(GetWorld(), PauseMenuWidget);
+
+			/** Make sure widget was created */
+			if (PauseMenuWidget)
+			{
+
+				pc->bShowMouseCursor = true;
+				/** Add it to the viewport */
+				pPauseMenu->AddToViewport();
+			}
+		}
+	}
+	else
+	{
+		pc->SetPause(false);
+		if (pPauseMenu != NULL)
+		{
+			pc->bShowMouseCursor = false;
+			pPauseMenu->RemoveFromParent();
+		}
+	}
+
+}
+
 void AProjectSimulationCharacter::MoveForward(float Value)
 {
+
 	if (Value != 0.0f)
 	{
-		// add movement in that direction
-		AddMovementInput(GetActorForwardVector(), Value);
-		
-		//Footstep sound logic
-		if (!isPlayingFootstep)
+
+		if (Cast<APlayerController>(GetController())->IsPaused())
 		{
-			PlayFootstep();
+			OnMenuMove.Broadcast(Value < 0);
+		}
+		else
+		{
+			// add movement in that direction
+			AddMovementInput(GetActorForwardVector(), Value);
+
+			//Footstep sound logic
+			if (!isPlayingFootstep)
+			{
+				PlayFootstep();
+			}
 		}
 	}
 }

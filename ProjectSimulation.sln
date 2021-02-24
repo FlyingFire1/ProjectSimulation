@@ -13,7 +13,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectSimulation", "Interm
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visualizers", "Visualizers", "{1CCEC849-CC72-4C59-8C36-2F7C38706D4C}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\Epic Store\UE_4.25\Engine\Extras\VisualStudioDebugging\UE4.natvis = ..\..\..\Epic Store\UE_4.25\Engine\Extras\VisualStudioDebugging\UE4.natvis
+		..\..\Epic Store\UE_4.25\Engine\Extras\VisualStudioDebugging\UE4.natvis = ..\..\Epic Store\UE_4.25\Engine\Extras\VisualStudioDebugging\UE4.natvis
 	EndProjectSection
 EndProject
 Global
@@ -40,7 +40,8 @@ Global
 		{735AC178-11C2-4DDA-96EC-1ACF77DF0358}.Development|Win64.ActiveCfg = BuiltWithUnrealBuildTool|Win32
 		{735AC178-11C2-4DDA-96EC-1ACF77DF0358}.Shipping|Win32.ActiveCfg = BuiltWithUnrealBuildTool|Win32
 		{735AC178-11C2-4DDA-96EC-1ACF77DF0358}.Shipping|Win64.ActiveCfg = BuiltWithUnrealBuildTool|Win32
-		{96D184AA-02EF-4051-AB7B-D2EDD7848FB3}.DebugGame Editor|Win32.ActiveCfg = Invalid|Win32
+		{96D184AA-02EF-4051-AB7B-D2EDD7848FB3}.DebugGame Editor|Win32.ActiveCfg = DebugGame|Win32
+		{96D184AA-02EF-4051-AB7B-D2EDD7848FB3}.DebugGame Editor|Win32.Build.0 = DebugGame|Win32
 		{96D184AA-02EF-4051-AB7B-D2EDD7848FB3}.DebugGame Editor|Win64.ActiveCfg = DebugGame_Editor|x64
 		{96D184AA-02EF-4051-AB7B-D2EDD7848FB3}.DebugGame Editor|Win64.Build.0 = DebugGame_Editor|x64
 		{96D184AA-02EF-4051-AB7B-D2EDD7848FB3}.DebugGame|Win32.ActiveCfg = DebugGame|Win32
@@ -65,5 +66,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{735AC178-11C2-4DDA-96EC-1ACF77DF0358} = {94A6C6F3-99B3-346E-9557-ABF9D4064DBD}
 		{96D184AA-02EF-4051-AB7B-D2EDD7848FB3} = {8E2F6A87-1826-34F4-940C-CC23A48F9FE4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4C7980B4-90C7-45C9-AE43-3F6DE1437B2E}
 	EndGlobalSection
 EndGlobal
