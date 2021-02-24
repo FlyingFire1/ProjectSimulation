@@ -3,7 +3,7 @@
   <ItemGroup>
     <None Include="..\..\ProjectSimulation.uproject" />
     <Filter Include="Source">
-      <UniqueIdentifier>{442F5688-B1B7-492C-9FBC-CDEA9331EBE1}</UniqueIdentifier>
+      <UniqueIdentifier>{854C6233-5EB7-46A9-9AAB-AA1BAD371E16}</UniqueIdentifier>
     </Filter>
     <None Include="..\..\Source\ProjectSimulation.Target.cs">
       <Filter>Source</Filter>
@@ -14,7 +14,7 @@
     <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
     <Filter Include="Config">
-      <UniqueIdentifier>{B402B496-8637-4010-9607-68B502C67976}</UniqueIdentifier>
+      <UniqueIdentifier>{53D5C24F-02F5-4A78-8732-3600EF09FB43}</UniqueIdentifier>
     </Filter>
     <None Include="..\..\Config\DefaultEditor.ini">
       <Filter>Config</Filter>
@@ -32,7 +32,7 @@
       <Filter>Config</Filter>
     </None>
     <Filter Include="Source\ProjectSimulation">
-      <UniqueIdentifier>{B05C383A-011C-46BA-85CC-011E2E838084}</UniqueIdentifier>
+      <UniqueIdentifier>{7BCD76EB-AE0F-4E2C-9A90-2B2D54E7260F}</UniqueIdentifier>
     </Filter>
     <ClCompile Include="..\..\Source\ProjectSimulation\AdvancedComponent.cpp">
       <Filter>Source\ProjectSimulation</Filter>
@@ -46,16 +46,22 @@
     <ClInclude Include="..\..\Source\ProjectSimulation\AdvancedMovementComponent.h">
       <Filter>Source\ProjectSimulation</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\Checkpoint.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\Checkpoint.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\ProjectSimulation\CheckpointManager.cpp">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\ProjectSimulation\CheckpointManager.h">
+      <Filter>Source\ProjectSimulation</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\Source\ProjectSimulation\DamageType_Melee.cpp">
       <Filter>Source\ProjectSimulation</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\ProjectSimulation\DamageType_Melee.h">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\Source\ProjectSimulation\Grappleable.cpp">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\Source\ProjectSimulation\Grappleable.h">
       <Filter>Source\ProjectSimulation</Filter>
     </ClInclude>
     <ClCompile Include="..\..\Source\ProjectSimulation\MeleeCombat.cpp">
