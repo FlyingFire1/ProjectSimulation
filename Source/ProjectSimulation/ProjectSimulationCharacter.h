@@ -91,6 +91,9 @@ public:
 	UFUNCTION()
 	void PlayPainVoiceline();
 
+	UFUNCTION(BlueprintCallable)
+	void TakeDamage(float amount);
+
 	//Sounds 
 
 	/** Sounds that are used for footsteps */

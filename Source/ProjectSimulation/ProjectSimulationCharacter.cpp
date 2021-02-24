@@ -350,6 +350,15 @@ void AProjectSimulationCharacter::RotateCamera(FRotator rotation, bool useRoll, 
 	ScoreTimeline->PlayFromStart();
 }
 
+void AProjectSimulationCharacter::TakeDamage(float amount)
+{
+	Health -= amount;
+	PlayPainVoiceline();
+	if (!(Health > 0))
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), FName(GetWorld()->GetName()));
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Sound Functions
