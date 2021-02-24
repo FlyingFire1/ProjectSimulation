@@ -55,7 +55,7 @@ void UMeleeCombat::Attack()
 	for (AActor* m : temp)
 	{
 		m->ReceiveAnyDamage(damageAmount, dt, GetOwner()->GetInstigatorController(), GetOwner());
-		if(m->IsA(ACharacter::StaticClass()))
+		if(m->IsA(ACharacter::StaticClass()) && !(m->IsA(AProjectSimulationCharacter::StaticClass())))
 			hasEnemy = true;
 	}
 
