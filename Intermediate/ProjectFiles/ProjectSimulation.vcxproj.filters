@@ -3,7 +3,7 @@
   <ItemGroup>
     <None Include="..\..\ProjectSimulation.uproject" />
     <Filter Include="Source">
-      <UniqueIdentifier>{BB84D3EC-3190-4D6A-8A94-69956084C7A9}</UniqueIdentifier>
+      <UniqueIdentifier>{854C6233-5EB7-46A9-9AAB-AA1BAD371E16}</UniqueIdentifier>
     </Filter>
     <None Include="..\..\Source\ProjectSimulation.Target.cs">
       <Filter>Source</Filter>
@@ -14,7 +14,7 @@
     <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
     <Filter Include="Config">
-      <UniqueIdentifier>{12D95FDD-3F03-412A-BA83-1F155BD9871A}</UniqueIdentifier>
+      <UniqueIdentifier>{53D5C24F-02F5-4A78-8732-3600EF09FB43}</UniqueIdentifier>
     </Filter>
     <None Include="..\..\Config\DefaultEditor.ini">
       <Filter>Config</Filter>
@@ -32,7 +32,7 @@
       <Filter>Config</Filter>
     </None>
     <Filter Include="Source\ProjectSimulation">
-      <UniqueIdentifier>{A14B7FDA-8D8B-4725-BBA1-7AF149ABBD54}</UniqueIdentifier>
+      <UniqueIdentifier>{7BCD76EB-AE0F-4E2C-9A90-2B2D54E7260F}</UniqueIdentifier>
     </Filter>
     <ClCompile Include="..\..\Source\ProjectSimulation\AdvancedComponent.cpp">
       <Filter>Source\ProjectSimulation</Filter>
@@ -62,12 +62,6 @@
       <Filter>Source\ProjectSimulation</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\ProjectSimulation\DamageType_Melee.h">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\Source\ProjectSimulation\Grappleable.cpp">
-      <Filter>Source\ProjectSimulation</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\Source\ProjectSimulation\Grappleable.h">
       <Filter>Source\ProjectSimulation</Filter>
     </ClInclude>
     <ClCompile Include="..\..\Source\ProjectSimulation\MeleeCombat.cpp">
